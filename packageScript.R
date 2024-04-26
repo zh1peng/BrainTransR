@@ -9,3 +9,4 @@ has_devel()
 
 devtools::document()
 devtools::build()
+usethis::use_mit_license()
