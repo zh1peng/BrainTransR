@@ -1,4 +1,4 @@
-# BrainTrascript: An R package correlating imaing-derived features with transcriptional profiles 🧠🧬
+# BraintransR: An R package correlating imaging-derived features with transcriptional profiles 🧠🧬
 
 ## Aim of the Toolbox 🎯
 
@@ -33,8 +33,8 @@ devtools::install_github("zh1peng/braintranscript")
 
 ## To-Do List 📋
 - [x] Initialize the project 2023/11/04
+- [x] Finalize manuscript revision. 🔧
 - [ ] Development of core functions🔧
-- [ ] Finalize manuscript revision. 🔧
 - [ ] Create detailed vignettes for each major function. 📚
 - [ ] Optimize performance for large datasets. ⚡
 - [ ] Conduct extensive testing with real-world data. 🌏
@@ -47,7 +47,7 @@ devtools::install_github("zh1peng/braintranscript")
 
 
 ## Versioning 🏷️
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/zh1peng/braintranscript/tags).
+We use git for versioning. For the versions available, see the [tags on this repository](https://github.com/zh1peng/braintranscript/tags).
 
 
 
