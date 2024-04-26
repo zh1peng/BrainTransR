@@ -2,31 +2,37 @@
 % Please edit documentation in R/test_statistics.R
 \name{aggregate_geneSet}
 \alias{aggregate_geneSet}
-\title{Aggregate Gene List Based on a Gene Set}
+\title{Aggregate Gene Set Scores}
 \usage{
 aggregate_geneSet(
   geneList,
   geneSet,
-  method = c("mean", "median", "meanabs", "meansqr", "maxmean", "sig_n", "sign_test",
-    "rank_sum", "ks_orig", "ks_weighted", "ks_sum", "locfdr")
+  method = c("mean", "median", "meanabs", "meansqr", "maxmean", "ks_orig", "ks_weighted",
+    "ks_pos_neg_sum", "local_fdr", "sign_test", "rank_sum")
 )
 }
 \arguments{
-\item{geneList}{A matrix representing named correlation coefficients, with each column representing a model.}
+\item{geneList}{A matrix of genes by models, with each column representing a true or null model.}
 
-\item{geneSet}{A vector of gene names representing the gene set of interest.}
+\item{geneSet}{A vector containing names of genes in the gene set of interest.}
 
-\item{method}{A character string specifying the aggregation method to be used, or a custom function provided by the user.}
+\item{method}{A character string specifying the method to use for aggregation.
+Options include 'mean', 'median', 'meanabs', 'meansqr', 'maxmean',
+'sig_n', 'sign_test', 'rank_sum', 'ks_orig', 'ks_weighted', 'ks_sum',
+and 'locfdr'. Default is c('mean', 'median', ...).}
+
+\item{FUN}{A custom function provided by the user for aggregation; if specified,
+it overrides the 'method' parameter.}
 }
 \value{
-Returns a numeric vector of aggregated gene scores.
+Returns a numeric score based on the specified aggregation method.
 }
 \description{
-This function aggregates a gene list based on a specified gene set using various methods.
+Function to aggregate geneList based on geneSet, evaluating one geneSet at a time.
+The function supports multiple aggregation methods as specified by the user.
 }
 \examples{
-geneList <- matrix(rnorm(100), nrow = 10)
-rownames(geneList) <- paste("Gene", 1:10, sep = "")
-geneSet <- rownames(geneList)[1:5]
-aggregate_geneSet(geneList, geneSet, method = "mean")
+geneList <- matrix(rnorm(100), ncol=10, dimnames=list(gene=paste("Gene", 1:10), model=1:10))
+gene_set <- paste("Gene", sample(1:10, 5), sep="")
+aggregate_geneSet(gene_data, gene_set, method = 'mean')
 }

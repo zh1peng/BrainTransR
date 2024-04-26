@@ -3,3 +3,4 @@
 export(aggregate_geneSet)
 export(caculate_pvals)
 export(corr_brain_gene)
+import(pls)
