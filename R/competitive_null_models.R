@@ -47,7 +47,11 @@ resampling_geneList <- function(geneList.true, perm.n = 5000) {
 #' Resample Gene Sets with Specified Constraints
 #'
 #' This function resamples gene sets based on specific constraints like matching
-#' co-expression patterns or restricting to a gene subset.
+#' co-expression patterns or restricting to a gene subset. 
+#' The methodology implemented is informed by Wei et al. (2022) on statistical testing in transcriptomic-neuroimaging studies.
+#' It is important to note that restricting null models to a subset of genes can be problematic. The empirical statistics sampled from 
+#' the full gene pool differ from those derived from a restricted pool. Therefore, usage of this approach should be 
+#' with caution.
 #'
 #' @param geneSetList A list of gene sets to be resampled.
 #' @param constrain A character vector specifying the type of constraint.
@@ -64,6 +68,11 @@ resampling_geneList <- function(geneList.true, perm.n = 5000) {
 #'                                      constrain='gene_subset', gene_subset=gene_subset)
 #' @importFrom stats setNames
 #' @export
+#' 
+#' @references
+#' Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
+#' Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.
+#' Human Brain Mapping, 43(3), 885–901. https://doi.org/10.1002/hbm.25711
 resampling_geneSetList_with_constraints <- function(geneSetList,
                                                     constrain = c('match_coexp', 'gene_subset'),
                                                     coexp_matrix = NULL,  # coexp_matrix=cor(gene_data)
@@ -93,7 +102,8 @@ resampling_geneSetList_with_constraints <- function(geneSetList,
 
 #' Sample Gene Sets Matching Co-Expression
 #'
-#' This function samples gene sets that have a co-expression profile similar to a specified target gene set.
+#' This function samples gene sets that closely match the co-expression profile of a target gene set.
+#' The methodology implemented is informed by Wei et al. (2022) on statistical testing in transcriptomic-neuroimaging studies.
 #'
 #' @param gs The target gene set for which similar co-expression profiles are sought.
 #' @param coexp_matrix A co-expression matrix, typically calculated as the correlation matrix of gene expression data.
@@ -101,7 +111,10 @@ resampling_geneSetList_with_constraints <- function(geneSetList,
 #' @param max_iter Maximum number of iterations to attempt finding matches.
 #' @param n_target Number of gene sets to sample.
 #' @return A list of gene sets that closely match the target gene set's co-expression profile.
-#' @examples
+#' @references
+#' Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
+#' Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.
+#' Human Brain Mapping, 43(3), 885–901. https://doi.org/10.1002/hbm.25711
 #' # Assuming 'coexp_matrix' is predefined:
 #' target_gene_set <- c("Gene1", "Gene2", "Gene3")
 #' similar_gene_sets <- sample_gs_matching_coexp(target_gene_set, coexp_matrix)
@@ -143,15 +156,18 @@ sample_gs_matching_coexp <- function(gs, coexp_matrix, tol = 0.01, max_iter = 10
 #' Sample Gene Sets Within a Specified Subset
 #'
 #' This function samples gene sets by randomly selecting genes within a specified subset.
-#'
+#' The methodology implemented is informed by Wei et al. (2022) on statistical testing in transcriptomic-neuroimaging studies.
+#' It is important to note that restricting null models to a subset of genes can be problematic. The empirical statistics sampled from 
+#' the full gene pool differ from those derived from a restricted pool. Therefore, usage of this approach should be 
+#' with caution.
 #' @param gs The original gene set for reference size.
 #' @param gene_subset A vector of gene identifiers from which to sample.
 #' @param perm.n The number of gene sets to generate.
 #' @return A list of gene sets sampled from the specified subset.
-#' @examples
-#' # Assuming 'gene_subset' is predefined:
-#' original_gene_set <- c("Gene1", "Gene2", "Gene3")
-#' sampled_gene_sets <- sample_gs_within_subset(original_gene_set, gene_subset)
+#' @references
+#' Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
+#' Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.
+#' Human Brain Mapping, 43(3), 885–901. https://doi.org/10.1002/hbm.25711
 sample_gs_within_subset <- function(gs, gene_subset, perm.n = 5000) {
   # Sample gene sets from the specified subset
   sampled_gs <- lapply(1:(perm.n + 100), function(i) {
@@ -163,56 +179,4 @@ sample_gs_within_subset <- function(gs, gene_subset, perm.n = 5000) {
   return(sampled_gs)
 }
 
-
-
-#' Swap Genes in a List
-#'
-#' This helper function swaps genes in a gene list between an original and a set of sampled gene sets.
-#'
-#' @param geneList.true A matrix or vector of gene data from which genes are to be swapped.
-#' @param orig_gs The original gene set.
-#' @param sampled_gs The sampled gene sets to swap into the original positions.
-#' @return A matrix where each column represents the gene list with swapped genes.
-#' @examples
-#' # Assuming 'geneList.true', 'orig_gs', and 'sampled_gs' are predefined:
-#' swapped_gene_list <- swap_geneList(geneList.true, orig_gs, sampled_gs)
-swap_geneList <- function(geneList.true, orig_gs, sampled_gs) {
-  if (!is.matrix(geneList.true)) {
-    stop('geneList.true should be a m x 1 vector/matrix. Please include drop = FALSE when subsetting')
-  } else if (dim(geneList.true)[2] > 1) {
-    stop('geneList.true should be a m x 1 vector/matrix.')
-  }
-  
-  gnames <- rownames(geneList.true)
-  origVals <- as.numeric(geneList.true[gnames %in% orig_gs])
-  null_list <- lapply(sampled_gs, function(gs_i) {
-    tmp_null <- geneList.true
-    swapVals <- as.numeric(geneList.true[gnames %in% gs_i])
-    tmp_null[gnames %in% gs_i] <- origVals
-    tmp_null[gnames %in% orig_gs] <- swapVals
-    return(tmp_null)
-  })
-  
-  null_geneList <- do.call(cbind, null_list)
-  colnames(null_geneList) <- paste0('null_', 1:ncol(null_geneList))
-  
-  attr(null_geneList, 'is_fisherz') <- attr(geneList.true, 'is_fisherz')
-  attr(null_geneList, 'n.region') <- attr(geneList.true, 'n.region')
-  
-  return(null_geneList)
-}
-
-
-# ====================toy data for swap function =====================================
-# set.seed(123)  # for reproducibility
-# # Generate geneList.true
-# num_genes <- 100  # total number of genes
-# geneList.true <- matrix(1:100, ncol = 1)
-# rownames(geneList.true) <- paste0("Gene", 1:num_genes)
-# # Generate gs (gene set)
-# num_gs <- 10  # size of gs
-# gs <- sample(rownames(geneList.true), num_gs)
-# # Generate sampled_gs (another gene set with the same size as gs)
-# sampled_gs <- replicate(10, sample(rownames(geneList.true), num_gs), simplify = FALSE)
-# result <- swap_geneList(geneList.true, gs, sampled_gs)
 
