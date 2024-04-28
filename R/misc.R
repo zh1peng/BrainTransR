@@ -1,21 +1,5 @@
 
-
-#' Calculate correlations or associations between gene and brain data
-#'
-#' @param statList.true A data frame or matrix of gene expression data.
-#' @param statList.null A data frame or matrix of brain data.
-#' @param method The method to be used for correlation/association. Can be 'pearson', 'spearman', 
-#'               'pls1c', 'pls1w', or a custom function provided by the user.
-
-#'
-#' @return A matrix with correlation or association coefficients between gene data and brain data.
-#' @export
-#' @examples
-#' # Custom correlation function example
-#' custom_cor <- function(gene_data, brain_data) {
-#'   apply(gene_data, 2, function(g) apply(brain_data, 2, function(b) cor(g, b, method = "pearson")))
-#' }
-#' result <- corr_brain_gene(gene_data, brain_data, method = custom_cor)
+# This file contains miscellaneous functions that are used in the main scripts
 caculate_pvals <- function(statList.true, statList.null,method=c('standard','split_pos_neg')) {
   
   method=match.arg(method)
