@@ -148,21 +148,90 @@ type=match.arg(type)
   return(geneSetList_filtered)
 }
 
+get_GO_data=getFromNamespace('get_GO_data','clusterProfiler')
+geneSet_filter=getFromNamespace('geneSet_filter','DOSE')
+build_Anno=getFromNamespace("build_Anno", "DOSE")
+getGeneSet=getFromNamespace('getGeneSet','DOSE')
+get_DGN_data=getFromNamespace('get_DGN_data','DOSE')
+mapIds=getFromNamespace('mapIds','AnnotationDbi')
+EXTID2NAME=getFromNamespace('EXTID2NAME','DOSE')
 
-GO_BP
-GO_MF
-GO_CC
-DO
-KEGG
-WikiPathways
-Reactome
-MeSH
+EXTID2NAME(OrgDb='org.Hs.eg.db',geneID=c("1468", "4210","99999"),keytype="ENTREZID")
+
+
+get_geneSetList <- function(type=c('GO_BP',
+                                   'GO_MF',
+                                   'GO_CC',
+                                   'DO',
+                                   'KEGG',
+                                   'WikiPathways',
+                                   'Reactome',
+                                   'MeSH',
+                                   'SynGO',
+                                   'CellType')){
+  type=match.arg(type)
+  if (type=='GO_BP') {
+    annoData <- get_GO_data('org.Hs.eg.db', ont = 'BP', 'SYMBOL')
+    geneSetList <- getGeneSet(annoData)
+  } else if (type=='GO_MF') {
+    annoData <- get_GO_data('org.Hs.eg.db', ont = 'MF', 'SYMBOL')
+    geneSetList <- getGeneSet(annoData)
+  } else if (type=='GO_CC') {
+    annoData <- get_GO_data('org.Hs.eg.db', ont = 'CC', 'SYMBOL')
+    geneSetList <- getGeneSet(annoData)
+  } else if (type=='DisGeNet') {
+  annoData=get_DGN_data()
+  geneSetList <- getGeneSet(annoData)
+  geneSetNames <- get("PATHID2NAME", envir = annoData)
+  # convert entrezid to symbol
+  geneSetList <- lapply(geneSetList, function(x) entrezid2symbol(x))
+  
+
+
+  } else if (type=='KEGG') {
+
+
+  }
+  return(geneSetList)
+  }
+
+
+
+fitler_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
+  # Create synthetic brain data and compute correlation with gene data
+bg_genes=c(1:ncol(gene_data))
+  names(bg_genes)=colnames(gene_data)
+  geneSetList_filtered=geneSet_filter(geneSetList, bg_genes, minGSSize, maxGSSize)
+  return(geneSetList_filtered)
+}
+
+
+
+
+entrezid2symbol <- function(entrezid) {
+  # Convert the input to character to ensure compatibility with mapIds
+  entrezid <- as.character(entrezid)
+
+  # Corrected function call
+  mappedSymbol <- suppressMessages(
+    mapIds(x = org.Hs.eg.db,
+           keys = entrezid,
+           keytype = "ENTREZID",
+           column = "SYMBOL",
+           multiVals = "first")
+  )
+  mappedSymbol <- na.omit(mappedSymbol)
+  # Remove all attributes from the result
+    attributes(mappedSymbol) <- NULL
+
+  return(unname(mappedSymbol))
+}
 
 
 
 prepare_WP_data
 prepare_KG_data
-prepare_
+
 
 
 
