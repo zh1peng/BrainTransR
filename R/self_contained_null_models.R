@@ -22,21 +22,49 @@ if (perm.n>10000){stop('>10k perm.id is supported')}
   return(perm.id[,1:perm.n])
 }
 
-generate_null_brain_data <- function(brain_data,perm.id){
-  # before put perm.id in the function 
-  # need to make sure no duplicate in perm.id.
-  region.n=dim(perm.id)[1]
-  perm.n=dim(perm.id)[2]
-  if (!dim(brain_data)[1]==region.n){stop('The number of regions in brain data nd perm.id is not matched ')}
-  # null_brain_data=matrix(NA,nrow=region.n, ncol=perm.n)
-  # for (idx in c(1:perm.n)){
-  #   tmp_brain_data=brain_data
-  #   null_brain_data[,idx]=brain_data[perm.id[,idx]]
-  # }
-  null_brain_data=sapply(c(1:perm.n),function(idx){
-    brain_data[perm.id[,idx]]
+
+
+
+
+
+#' Generate Null Brain Data
+#'
+#' This function generates null brain datasets based on permutations provided in perm.id.
+#' It rearranges the brain data according to the permutations and outputs the shuffled datasets.
+#'
+#' @param brain_data A matrix representing brain data, where each row corresponds to a region.
+#' @param perm_id A matrix of permutations, where each column represents a permutation and each row corresponds to an index in `brain_data`.
+#' 
+#' @return A matrix of null brain data with the same dimensions as `brain_data` but with permuted rows according to `perm_id`.
+#' @export
+#'
+#' @examples
+#' brain_data <- matrix(rnorm(100), nrow=10)
+#' perm_id <- matrix(sample(1:10), nrow=10, ncol=5)
+#' null_data <- generate_null_brain_data(brain_data, perm_id)
+generate_null_brain_data <- function(brain_data, perm_id) {
+  # Check for duplicates in perm_id
+  if (any(duplicated(perm_id))) {
+    stop("Duplicate entries found in perm_id.")
+  }
+
+  # Define dimensions
+  region_n <- nrow(perm_id)
+  perm_n <- ncol(perm_id)
+
+  # Check if dimensions match
+  if (nrow(brain_data) != region_n) {
+    stop("The number of regions in brain_data and perm_id do not match.")
+  }
+
+  # Generate null brain data
+  null_brain_data <- sapply(1:perm_n, function(idx) {
+    brain_data[perm_id[, idx], , drop = FALSE]
   })
-  rownames(null_brain_data)=rownames(brain_data)
-  colnames(null_brain_data)=paste0('null_',c(1:perm.n))
+
+  # Set row and column names
+  rownames(null_brain_data) <- rownames(brain_data)
+  colnames(null_brain_data) <- paste0("null_", 1:perm_n)
+
   return(null_brain_data)
 }
