@@ -254,6 +254,7 @@ get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021'
     # Create gene set list
     USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
 
+
     message("Cell type data has been processed and temporary files removed.")
     return(USER_DATA)
   }, error = function(e) {
