@@ -1,153 +1,5 @@
 
 
-
-
-#' Retrieve Gene Sets Based on GO Terms
-#'
-#' This function fetches gene sets from the Gene Ontology (GO) data, 
-#' filters them based on correlation with synthetic brain data, and applies size constraints.
-#'
-#' @param gene_data A matrix or data frame of gene expression data.
-#' @param ont2use A character vector specifying the ontology categories to use: 'MF' (Molecular Function),
-#'        'BP' (Biological Process), or 'CC' (Cellular Component).
-#' @param minGSSize Minimum size of gene sets to consider.
-#' @param maxGSSize Maximum size of gene sets to consider.
-#'
-#' @return A list of gene sets filtered based on the specified size and correlation criteria.
-#' @importFrom clusterProfiler get_GO_data
-#' @importFrom DOSE geneSet_filter getGeneSet
-#' @importFrom org.Hs.eg.db org.Hs.eg.db
-#' @importFrom stats cor
-#' @export
-#'
-#' @examples
-#' gene_data <- matrix(rnorm(1000), ncol=10)
-#' gene_sets <- get_GO_geneSetList(gene_data)
-get_GO_geneSetList <- function(gene_data,
-                               ont2use = c('MF', 'BP', 'CC'),
-                               minGSSize = 20,
-                               maxGSSize = 200) {
-  # Retrieve GO data using predefined ontology and symbol
-  GO_env <- get_GO_data('org.Hs.eg.db', ont = ont2use, 'SYMBOL')
-  USER_DATA <- getGeneSet(GO_env)
-
-  # Create synthetic brain data and compute correlation with gene data
-  brain_data <- rnorm(nrow(gene_data)) 
-  geneList_tmp <- cor(gene_data, brain_data)
-
-  # Filter gene sets based on correlation and size constraints
-  geneSetList <- geneSet_filter(USER_DATA, geneList_tmp[, 1], minGSSize = minGSSize, maxGSSize = maxGSSize)
-
-  return(geneSetList)
-}
-
-
-
-build_Anno=getFromNamespace("build_Anno", "DOSE")
-
-get_synGO_geneSetList <- function(gene_data,
-                                  synGO_file='F:/Google Drive/post-doc/vitural_histology_revisit/revision_code/data/GeneSets/syngo_ontologies.xlsx',
-                                  minGSSize = 20,
-                                  maxGSSize = 200) {
-#check if synGO_file exist
-if (!file.exists(synGO_file)) {
-  stop(sprintf('synGO_file %s does not exist',synGO_file))
-}
-
-GS_df=readxl::read_xlsx(synGO_file)
-TERM2GENE=GS_df%>%dplyr::select(`GO term ID`, `genes - hgnc_symbol`) %>% # TERM2GENE
-                  dplyr::rename(cLabel=`GO term ID`,
-                                geneID=`genes - hgnc_symbol`) %>% 
-                  mutate(geneID = strsplit(geneID, ';')) %>%
-                  unnest(cols = c(geneID))  
-TERM2NAME=GS_df%>%dplyr::select(`GO term ID`, `GO term name`) %>% 
-                  dplyr::rename(cLabel=`GO term ID`,
-                                description=`GO term name`)
-USER_DATA = build_Anno(TERM2GENE,TERM2NAME)
-USER_GS=getGeneSet(USER_DATA)
-brain_data=rnorm(nrow(gene_data)) # create a fake brain data
-geneList.tmp=cor(gene_data, brain_data)
-geneSetList=geneSet_filter(USER_GS, geneList.tmp[,1], minGSSize=minGSSize,maxGSSize=maxGSSize)
-return(geneSetList)
-}
-
-
-load_geneSetList <- function(gene_data,
-                            type=c('Cell_Martins2021_lake',
-                                    'Cell_Martins2021_pooled',
-                                    'Cell_Seidlitz2020',
-                                    'GO_MF',
-                                    'GO_BP',
-                                    'GO_CC',
-                                   'GO_GSEA',
-                                   'AUD_GWAS_GSEA',
-                                   'GO_GSEA_MF'),
-                            minGSSize=10,
-                            maxGSSize=200){
-type=match.arg(type)
-  
-  if (type=='Cell_Martins2021_lake') {
-    # glist from Lake
-    df.glist = clusterProfiler::read.gmt('F:/Google Drive/post-doc/GSVA/code/cell_types/geneset_LAKE.gmt')
-    df.glist = df.glist %>% filter(!gene == '')
-    geneSetList = split(df.glist$gene, df.glist$term)
-  } else if (type == 'Cell_Martins2021_pooled') {
-    # glist from pooled
-    df.glist = clusterProfiler::read.gmt('F:/Google Drive/post-doc/GSVA/code/cell_types/geneset_Pooled.gmt')
-    df.glist = df.glist %>% filter(!gene == '')
-    geneSetList = split(df.glist$gene, df.glist$term)
-  } else if (type == 'Cell_Seidlitz2020') {
-    df.glist = read.csv('F:/Google Drive/post-doc/GSVA/code/cell_types/2020NC.txt')
-    df.glist = df.glist %>% filter(!gene == '') %>% rename(term = class)
-    geneSetList = split(df.glist$gene, df.glist$term)
-  } else if (type == 'GO_BP') {
-    # ont2use='BP'
-    # go_env=get_GO_data('org.Hs.eg.db',ont2use,'SYMBOL')
-    # geneSetList=getGeneSet(go_env)
-    # saveRDS(geneSetList,'F:/Google Drive/post-doc/GSVA/code/GO/GO_BP.Rds')
-    geneSetList = readRDS('F:/Google Drive/post-doc/GSVA/code/GO/GO_BP.Rds')
-  } else if (type == 'GO_CC') {
-    # ont2use='CC'
-    # go_env=get_GO_data('org.Hs.eg.db',ont2use,'SYMBOL')
-    # geneSetList=getGeneSet(go_env)
-    # saveRDS(geneSetList,'F:/Google Drive/post-doc/GSVA/code/GO/GO_CC.Rds')
-    geneSetList = readRDS('F:/Google Drive/post-doc/GSVA/code/GO/GO_CC.Rds')
-  } else if (type == 'GO_MF') {
-    # ont2use='MF'
-    # go_env=get_GO_data('org.Hs.eg.db',ont2use,'SYMBOL')
-    # geneSetList=getGeneSet(go_env)
-    # saveRDS(geneSetList,'F:/Google Drive/post-doc/GSVA/code/GO/GO_MF.Rds')
-    geneSetList = readRDS('F:/Google Drive/post-doc/GSVA/code/GO/GO_MF.Rds')
-  } else if (type == 'GO_GSEA') {
-    # geneSetList_CC=readRDS('F:/Google Drive/post-doc/GSVA/code/GO/GO_CC.Rds')
-    # geneSetList_BP=readRDS('F:/Google Drive/post-doc/GSVA/code/GO/GO_BP.Rds')
-    # geneSetList_MF=readRDS('F:/Google Drive/post-doc/GSVA/code/GO/GO_MF.Rds')
-    # geneSetList_all=c(geneSetList_CC,geneSetList_BP,geneSetList_MF)
-    # geneSetList=geneSetList_all[df.res$ID]
-    # saveRDS(geneSetList,'F:/Google Drive/post-doc/GSVA/code/GO/GO_GSEA.Rds')
-    geneSetList = readRDS('F:/Google Drive/post-doc/GSVA/code/GO/GO_GSEA.Rds')
-  } else if (type == 'GO_GSEA_MF'){
-    # geneSetList_MF=readRDS('F:/Google Drive/post-doc/GSVA/code/GO/GO_MF.Rds')
-    # df.res=read.csv('F:/Google Drive/post-doc/Structural_subtype_new/all_res/GSEA/MF.csv')
-    # geneSetList=geneSetList_MF[df.res$ID]
-    # saveRDS(geneSetList,'F:/Google Drive/post-doc/GSVA/code/GO/GO_GSEA_MF.Rds')
-    geneSetList=readRDS('F:/Google Drive/post-doc/GSVA/code/GO/GO_GSEA_MF.Rds')
-  }
-  else if (type == 'AUD_GWAS_GSEA') {
-    df.glist = read.csv('F:/Google Drive/post-doc/GSVA/code/GWAS/magma_gsa_IDconverted.csv')
-    df.glist = df.glist %>% filter(complete.cases(SYMBOL)) %>% rename(term = class)
-    geneSetList = split(df.glist$SYMBOL, df.glist$term)
-  }
-  # df.glist=read.csv('F:/Google Drive/post-doc/GSVA/code/GWAS/GWAS.csv') %>% filter(journal=='NC')
-  # geneSetList=split(df.glist$geneID,df.glist$term)
-  
-  # make a fake geneList to do the filter
-  bg_genes=c(1:ncol(gene_data))
-  names(bg_genes)=colnames(gene_data)
-  geneSetList_filtered=geneSet_filter(geneSetList, bg_genes, minGSSize, maxGSSize)
-  return(geneSetList_filtered)
-}
-
 get_GO_data=getFromNamespace('get_GO_data','clusterProfiler')
 geneSet_filter=getFromNamespace('geneSet_filter','DOSE')
 build_Anno=getFromNamespace("build_Anno", "DOSE")
@@ -155,20 +7,20 @@ getGeneSet=getFromNamespace('getGeneSet','DOSE')
 get_DGN_data=getFromNamespace('get_DGN_data','DOSE')
 mapIds=getFromNamespace('mapIds','AnnotationDbi')
 EXTID2NAME=getFromNamespace('EXTID2NAME','DOSE')
+prepare_KEGG=getFromNamespace('prepare_KEGG','clusterProfiler')
+prepare_WP_data=getFromNamespace('prepare_WP_data','clusterProfiler')
+get_Reactome_DATA=getFromNamespace('get_Reactome_DATA','ReactomePA')
+get_MeSH_data = getFromNamespace('get_MeSH_data', 'meshes')
 
-EXTID2NAME(OrgDb='org.Hs.eg.db',geneID=c("1468", "4210","99999"),keytype="ENTREZID")
-
-
-get_geneSetList <- function(type=c('GO_BP',
-                                   'GO_MF',
-                                   'GO_CC',
+get_geneSetList <- function(type=c('GO',
                                    'DO',
                                    'KEGG',
                                    'WikiPathways',
                                    'Reactome',
                                    'MeSH',
                                    'SynGO',
-                                   'CellType')){
+                                   'CellType'),
+                              parameter){
   type=match.arg(type)
   if (type=='GO_BP') {
     annoData <- get_GO_data('org.Hs.eg.db', ont = 'BP', 'SYMBOL')
@@ -180,62 +32,269 @@ get_geneSetList <- function(type=c('GO_BP',
     annoData <- get_GO_data('org.Hs.eg.db', ont = 'CC', 'SYMBOL')
     geneSetList <- getGeneSet(annoData)
   } else if (type=='DisGeNet') {
-  annoData=get_DGN_data()
-  geneSetList <- getGeneSet(annoData)
-  geneSetNames <- get("PATHID2NAME", envir = annoData)
-  # convert entrezid to symbol
-  geneSetList <- lapply(geneSetList, function(x) entrezid2symbol(x))
-  
-
-
+    annoData=get_DGN_data()
+    geneSetList <- getGeneSet(annoData)
+    # convert entrezid to symbol
+    geneSetList <- lapply(geneSetList, function(x) entrezid2symbol(x))
   } else if (type=='KEGG') {
-
-
+    annoData <- prepare_KEGG('hsa', 'MKEGG', 'kegg')
+    geneSetList <- getGeneSet(annoData)
+    geneSetList <- lapply(geneSetList, function(x) entrezid2symbol(x))
+  } else if (type=='WikiPathways'){
+    wpdata <- prepare_WP_data('Homo sapiens')
+    TERM2GENE = wpdata$WPID2GENE
+    TERM2NAME = wpdata$WPID2NAME
+    annoData = build_Anno(TERM2GENE, TERM2NAME)
+    geneSetList <- getGeneSet(annoData)
+    geneSetList <- lapply(geneSetList, function(x) entrezid2symbol(x))
+  } else if(type=='Reactome'){
+    annoData=get_Reactome_DATA('human')
+    geneSetList <- getGeneSet(annoData)
   }
   return(geneSetList)
-  }
+}
+
+
+# From BioC 3.14 (Nov. 2021, with R-4.2.0)
+library(AnnotationHub)
+library(MeSHDbi)
+ah <- AnnotationHub(localHub=TRUE)
+hsa <- query(ah, c("MeSHDb", "Homo sapiens"))
+file_hsa <- hsa[[1]]
+db <- MeSHDbi::MeSHDb(file_hsa)
 
 
 
-
-
-
-fitler_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
-  # Create synthetic brain data and compute correlation with gene data
-bg_genes=c(1:ncol(gene_data))
-  names(bg_genes)=colnames(gene_data)
-  geneSetList_filtered=geneSet_filter(geneSetList, bg_genes, minGSSize, maxGSSize)
+#' Filter Gene Set List
+#'
+#' This function filters a list of gene sets based on the background genes and specified size constraints.
+#'
+#' @param bg_genes A vector of background gene symbols to be used for filtering.
+#' @param geneSetList A list of gene sets to be filtered.
+#' @param minGSSize Minimum gene set size for filtering.
+#' @param maxGSSize Maximum gene set size for filtering.
+#' @return A filtered list of gene sets that meet the size constraints and background genes criteria.
+#' @importFrom DOSE geneSet_filter
+#' @export
+filter_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
+  # Create temporary values to name the background genes
+  tmp.val <- seq_along(bg_genes)
+  names(tmp.val) <- bg_genes
+  
+  # Filter the gene set list
+  geneSetList_filtered <- geneSet_filter(geneSetList, tmp.val, minGSSize, maxGSSize)
+  
   return(geneSetList_filtered)
 }
 
 
 
 
+#' Convert Entrez IDs to Gene Symbols
+#'
+#' This function converts a vector of Entrez IDs to gene symbols using the org.Hs.eg.db annotation package.
+#'
+#' @param entrezid A vector of Entrez IDs to be converted to gene symbols.
+#' @return A vector of gene symbols corresponding to the input Entrez IDs.
+#' @importFrom AnnotationDbi mapIds
+#' @import org.Hs.eg.db
+#' @examples
+#' \dontrun{
+#' entrez_ids <- c("2451", "3142", "66666")
+#' gene_symbols <- entrezid2symbol(entrez_ids)
+#' print(gene_symbols)
+#' }
+#'
+#' @export
 entrezid2symbol <- function(entrezid) {
-  # Convert the input to character to ensure compatibility with mapIds
+  # Ensure input is character vector
   entrezid <- as.character(entrezid)
-
-  # Corrected function call
+  
+  # Map Entrez IDs to gene symbols
   mappedSymbol <- suppressMessages(
-    mapIds(x = org.Hs.eg.db,
-           keys = entrezid,
-           keytype = "ENTREZID",
-           column = "SYMBOL",
-           multiVals = "first")
+    mapIds(
+      x = org.Hs.eg.db,
+      keys = entrezid,
+      keytype = "ENTREZID",
+      column = "SYMBOL",
+      multiVals = "first"
+    )
   )
+  
+  # Remove NA values and attributes
   mappedSymbol <- na.omit(mappedSymbol)
-  # Remove all attributes from the result
-    attributes(mappedSymbol) <- NULL
-
+  attributes(mappedSymbol) <- NULL
+  
   return(unname(mappedSymbol))
 }
 
 
 
-prepare_WP_data
-prepare_KG_data
+#' Download and process SynGO data
+#'
+#' This function downloads the SynGO data from the specified URL, extracts the `syngo_ontologies.xlsx` file,
+#' processes the data to create TERM2GENE and TERM2NAME data frames, builds the annotation using `build_Anno`,
+#' and removes the downloaded and temporary files afterward.
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Downloads the SynGO data zip file from the provided URL.
+#'   \item Extracts the `syngo_ontologies.xlsx` file from the zip archive.
+#'   \item Reads the Excel file and processes the data to create TERM2GENE and TERM2NAME data frames.
+#'   \item Uses the `build_Anno` function to build the final annotation data.
+#'   \item Cleans up by removing the temporary zip file and extracted Excel file.
+#' }
+#'
+#' @param url The URL to download the SynGO data zip file from. Default is the latest release URL.
+#' @return A data frame containing the processed SynGO data.
+#' @import readxl
+#' @importFrom dplyr select rename mutate %>%
+#' @importFrom tidyr unnest
+#' @importFrom utils download.file unzip
+#' @importFrom DOSE build_Anno
+#'
+#' @examples
+#' \dontrun{
+#' # Example usage of get_SynGO_data function
+#' data <- get_SynGO_data()
+#' print(head(data))  # Prints the first few rows of the processed data
+#' }
+#'
+#' @export
+get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_download_release_20231201.zip") {
+  # Create temporary file and directory
+  zip_path <- tempfile(fileext = ".zip")
+  temp_dir <- tempdir()
+  extracted_file <- file.path(temp_dir, "syngo_ontologies.xlsx")
 
+  # Clean-up function to ensure temp files are removed
+  on.exit({
+    if (file.exists(zip_path)) unlink(zip_path)
+    if (file.exists(extracted_file)) unlink(extracted_file)
+  }, add = TRUE)
 
+  tryCatch({
+    # Download the file
+    message("Downloading SynGO data...")
+    download.file(url, zip_path, mode = "wb")
+
+    # Unzip the required file
+    message("Unzipping SynGO data...")
+    unzip(zip_path, files = "syngo_ontologies.xlsx", exdir = temp_dir)
+
+    # Read the data from the extracted file
+    if (!file.exists(extracted_file)) {
+      stop("Failed to extract the required file.")
+    }
+
+    data <- read_xlsx(extracted_file)
+
+    # Process TERM2GENE
+    TERM2GENE <- data %>%
+      select(id, hgnc_symbol) %>%
+      rename(cLabel = id, geneID = hgnc_symbol) %>%
+      mutate(geneID = strsplit(geneID, ";")) %>%
+      unnest(cols = c(geneID))
+
+    # Process TERM2NAME
+    TERM2NAME <- data %>%
+      select(id, name) %>%
+      rename(cLabel = id, description = name)
+
+    # Use build_Anno function from DOSE package
+    USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
+
+    message("SynGO data has been processed and temporary files removed.")
+    return(USER_DATA)
+  }, error = function(e) {
+    stop("An error occurred while processing SynGO data: ", e$message)
+  })
+}
+
+#' Download and process cell type gene set data
+#'
+#' This function downloads cell type gene set data from specified resources, processes the data,
+#' and returns a list of gene sets based on the specified type.
+#'
+#' @details
+#' The function performs the following steps based on the specified type:
+#' \itemize{
+#'   \item Downloads the cell type gene set data from the provided URL.
+#'   \item Reads the data from the file and processes it to create a gene set list.
+#'   \item Supports the following types:
+#'     \itemize{
+#'       \item \strong{Seidlitz2020}: \url{https://github.com/jms290/PolySyn_MSNs/blob/master/Data/AHBA/celltypes_PSP.csv}
+#'       \itemize{
+#'         \item Seidlitz, J., Nadig, A., Liu, S., Bethlehem, R. A., Vértes, P. E., Morgan, S. E., ... & Raznahan, A. (2020). Transcriptomic and cellular decoding of regional brain vulnerability to neurogenetic disorders. Nature communications, 11(1), 3358.
+#'       }
+#'       \item \strong{Lake2018}: \url{https://github.com/molecular-neuroimaging/Imaging_Transcriptomics/blob/main/imaging_transcriptomics/data/geneset_LAKE.gmt}
+#'       \itemize{
+#'         \item Lake, B. B., Chen, S., Sos, B. C., Fan, J., Kaeser, G. E., Yung, Y. C., ... & Zhang, K. (2018). Integrative single-cell analysis of transcriptional and epigenetic states in the human adult brain. Nature biotechnology, 36(1), 70-80.
+#'       }
+#'       \item \strong{Martins2021}: \url{https://github.com/molecular-neuroimaging/Imaging_Transcriptomics/blob/main/imaging_transcriptomics/data/geneset_Pooled.gmt}
+#'       \itemize{
+#'         \item Imaging transcriptomics: Convergent cellular, transcriptomic, and molecular neuroimaging signatures in the healthy adult human brain. Daniel Martins, Alessio Giacomel, Steven CR Williams, Federico Turkheimer, Ottavia Dipasquale, Mattia Veronese, PET templates working group. Cell Reports.
+#'       }
+#'     }
+#' }
+#'
+#' @param type The type of cell type gene set data to download and process. Must be one of 'Seidlitz2020', 'Lake2018', 'Martins2021'.
+#' @return A list of gene sets where each element is a vector of genes associated with a specific term.
+#' @importFrom dplyr filter rename
+#' @importFrom utils download.file
+#' @importFrom clusterProfiler read.gmt
+#' @importFrom tibble as_tibble
+#' @examples
+#' \dontrun{
+#' # Example usage of get_celltype_data function
+#' geneSetList <- get_celltype_data('Seidlitz2020')
+#' print(geneSetList)
+#' }
+#'
+#' @export
+get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021')) {
+  type <- match.arg(type)
+  
+  # Define URLs for each type
+  urls <- list(
+    Seidlitz2020 = "https://github.com/jms290/PolySyn_MSNs/blob/master/Data/AHBA/celltypes_PSP.csv?raw=true",
+    Lake2018 = "https://github.com/molecular-neuroimaging/Imaging_Transcriptomics/raw/main/imaging_transcriptomics/data/geneset_LAKE.gmt",
+    Martins2021 = "https://github.com/molecular-neuroimaging/Imaging_Transcriptomics/raw/main/imaging_transcriptomics/data/geneset_Pooled.gmt"
+  )
+
+  # Create temporary file
+  temp_file <- tempfile()
+  
+  # Clean-up function to ensure temp files are removed
+  on.exit({
+    if (file.exists(temp_file)) unlink(temp_file)
+  }, add = TRUE)
+  
+  # Download the file
+  message("Downloading cell type data...")
+  download.file(urls[[type]], temp_file, mode = "wb")
+
+  tryCatch({
+    if (type == 'Seidlitz2020') {
+      # Read CSV file
+      df.glist <- read.csv(temp_file)
+      df.glist <- df.glist %>% filter(!is.na(gene)) %>% rename(term = class)
+    } else {
+      # Read GMT file
+      df.glist <- read.gmt(temp_file)
+      df.glist <- df.glist %>% filter(!is.na(gene))
+    }
+    
+    # Create gene set list
+    geneSetList <- split(df.glist$gene, df.glist$term)
+
+    message("Cell type data has been processed and temporary files removed.")
+    return(geneSetList)
+  }, error = function(e) {
+    stop("An error occurred while processing cell type data: ", e$message)
+  })
+}
 
 
 
