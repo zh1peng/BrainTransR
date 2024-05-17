@@ -28,3 +28,5 @@ devtools::test(filter = "corr_brain_gene") # Run tests for corr_brain_gene funct
 
 usethis::use_test('aggregate_geneSet') # Create test file for aggregate_gene_data function
 devtools::test(filter = "aggregate_geneSet") 
+
+usethis::use_test('get_geneSets.R')

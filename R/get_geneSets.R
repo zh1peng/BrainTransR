@@ -51,6 +51,7 @@ get_geneSetList <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', '
   } else if (type == 'Reactome') {
     get_Reactome_DATA=getFromNamespace('get_Reactome_DATA','ReactomePA')
     annoData <- get_Reactome_DATA('human')
+    convert_to_symbol <- TRUE
   } else if (type == 'CellType') {
     if (is.null(parameter) || !parameter %in% c('Seidlitz2020', 'Lake2018', 'Martins2021')) {
       stop("For type 'CellType', parameter must be one of 'Seidlitz2020', 'Lake2018', or 'Martins2021'.")
@@ -236,7 +237,6 @@ get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021'
       TERM2GENE <- read.csv(temp_file) %>% 
               mutate(term=class) %>% 
               filter(!gene == '') %>% 
-              complete.cases() %>% 
               select(term, gene)
       TERM2NAME <- TERM2GENE %>% 
                     mutate(description=term) %>% 
@@ -244,9 +244,9 @@ get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021'
   
     } else {
       # Read GMT file
-      TERM2GENE <- read.gmt(temp_file) %>% 
+      TERM2GENE <- suppressWarnings({read.gmt(temp_file) %>% 
                     filter(!gene == '') %>%
-                    select(term, gene)
+                    select(term, gene)})
       TERM2NAME <- TERM2GENE %>% mutate(description=term) %>% select(term, description)
     }
 
@@ -294,7 +294,6 @@ filter_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
 #' @param entrezid A vector of Entrez IDs to be converted to gene symbols.
 #' @return A vector of gene symbols corresponding to the input Entrez IDs.
 #' @importFrom AnnotationDbi mapIds
-#' @import org.Hs.eg.db
 #' @examples
 #' \dontrun{
 #' entrez_ids <- c("2451", "3142", "66666")
