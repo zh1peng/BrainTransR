@@ -72,7 +72,7 @@ resampling_geneList <- function(geneList.true, perm.n = 5000) {
 #' @references
 #' Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
 #' Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.
-#' Human Brain Mapping, 43(3), 885–901. https://doi.org/10.1002/hbm.25711
+#' Human Brain Mapping, 43(3), 885–901. \url{https://doi.org/10.1002/hbm.25711}
 resampling_geneSetList_with_constraints <- function(geneSetList,
                                                     constrain = c('match_coexp', 'gene_subset'),
                                                     coexp_matrix = NULL,  # coexp_matrix=cor(gene_data)
@@ -114,8 +114,9 @@ resampling_geneSetList_with_constraints <- function(geneSetList,
 #' @references
 #' Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
 #' Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.
-#' Human Brain Mapping, 43(3), 885–901. https://doi.org/10.1002/hbm.25711
-#' # Assuming 'coexp_matrix' is predefined:
+#' Human Brain Mapping, 43(3), 885–901. \url{https://doi.org/10.1002/hbm.25711}
+
+#' Assuming 'coexp_matrix' is predefined:
 #' target_gene_set <- c("Gene1", "Gene2", "Gene3")
 #' similar_gene_sets <- sample_gs_matching_coexp(target_gene_set, coexp_matrix)
 sample_gs_matching_coexp <- function(gs, coexp_matrix, tol = 0.01, max_iter = 1000000, n_target = 5000) {
@@ -167,7 +168,8 @@ sample_gs_matching_coexp <- function(gs, coexp_matrix, tol = 0.01, max_iter = 10
 #' @references
 #' Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
 #' Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.
-#' Human Brain Mapping, 43(3), 885–901. https://doi.org/10.1002/hbm.25711
+#' Human Brain Mapping, 43(3), 885–901. \url{https://doi.org/10.1002/hbm.25711}
+
 sample_gs_within_subset <- function(gs, gene_subset, perm.n = 5000) {
   # Sample gene sets from the specified subset
   sampled_gs <- lapply(1:(perm.n + 100), function(i) {

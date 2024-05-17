@@ -10,17 +10,6 @@
 #' @param type The type of gene set data to retrieve. Must be one of 'GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'.
 #' @param parameter Additional parameter for specific types like 'GO' and 'CellType'. For 'GO', use 'BP', 'MF', or 'CC'. For 'CellType', use 'Seidlitz2020', 'Lake2018', or 'Martins2021'.
 #' @return A list of gene sets where each element is a vector of genes associated with a specific term.
-#' @importFrom dplyr filter rename
-#' @importFrom utils download.file
-#' @importFrom clusterProfiler read.gmt
-#' @importFrom readr read_csv
-#' @importFrom tibble as_tibble
-#' @importFrom DOSE build_Anno getGeneSet get_DGN_data
-#' @importFrom clusterProfiler get_GO_data prepare_KEGG prepare_WP_data
-#' @importFrom ReactomePA get_Reactome_DATA
-#' @importFrom meshes get_MeSH_data
-#' @importFrom AnnotationDbi mapIds
-#' @import org.Hs.eg.db
 #' @examples
 #' \dontrun{
 #' # Example usage of get_geneSetList function
@@ -32,7 +21,7 @@
 get_geneSetList <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'),
                             parameter = NULL) {
   type <- match.arg(type)
-
+  
   # Main processing based on type
   annoData <- NULL
   convert_to_symbol <- FALSE
@@ -41,20 +30,26 @@ get_geneSetList <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', '
     if (is.null(parameter) || !parameter %in% c('BP', 'MF', 'CC')) {
       stop("For type 'GO', parameter must be one of 'BP', 'MF', or 'CC'.")
     }
+    get_GO_data=getFromNamespace('get_GO_data','clusterProfiler')
     annoData <- get_GO_data('org.Hs.eg.db', ont = parameter, 'SYMBOL')
   } else if (type == 'DisGeNet') {
+    get_DGN_data=getFromNamespace('get_DGN_data','DOSE')
     annoData <- get_DGN_data()
     convert_to_symbol <- TRUE
   } else if (type == 'KEGG') {
+    prepare_KEGG=getFromNamespace('prepare_KEGG','clusterProfiler')
     annoData <- prepare_KEGG('hsa', 'MKEGG', 'kegg')
     convert_to_symbol <- TRUE
   } else if (type == 'WikiPathways') {
+    prepare_WP_data=getFromNamespace('prepare_WP_data','clusterProfiler')
     wpdata <- prepare_WP_data('Homo sapiens')
     TERM2GENE <- wpdata$WPID2GENE
     TERM2NAME <- wpdata$WPID2NAME
+    build_Anno=getFromNamespace("build_Anno", "DOSE")
     annoData <- build_Anno(TERM2GENE, TERM2NAME)
     convert_to_symbol <- TRUE
   } else if (type == 'Reactome') {
+    get_Reactome_DATA=getFromNamespace('get_Reactome_DATA','ReactomePA')
     annoData <- get_Reactome_DATA('human')
   } else if (type == 'CellType') {
     if (is.null(parameter) || !parameter %in% c('Seidlitz2020', 'Lake2018', 'Martins2021')) {
@@ -64,7 +59,8 @@ get_geneSetList <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', '
   } else if (type=='SynGO'){
     annoData <- get_SynGO_data()
   }
-  
+
+  getGeneSet=getFromNamespace('getGeneSet','DOSE')
   geneSetList <- getGeneSet(annoData)
   
   if (length(geneSetList) > 10000) {
@@ -108,11 +104,10 @@ get_geneSetList <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', '
 #'
 #' @param url The URL to download the SynGO data zip file from. Default is the latest release URL.
 #' @return A data frame containing the processed SynGO data.
-#' @import readxl
+#' @importFrom readxl read_xlsx
 #' @importFrom dplyr select rename mutate %>%
 #' @importFrom tidyr unnest
 #' @importFrom utils download.file unzip
-#' @importFrom DOSE build_Anno
 #'
 #' @examples
 #' \dontrun{
@@ -162,6 +157,7 @@ get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_do
       select(id, name) %>%
       rename(term = id, description = name)
 
+    build_Anno=getFromNamespace("build_Anno", "DOSE")
     # Use build_Anno function from DOSE package
     USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
 
@@ -201,10 +197,9 @@ get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_do
 #'
 #' @param type The type of cell type gene set data to download and process. Must be one of 'Seidlitz2020', 'Lake2018', 'Martins2021'.
 #' @return A list of gene sets where each element is a vector of genes associated with a specific term.
-#' @importFrom dplyr filter rename select
+#' @importFrom dplyr filter rename select %>%
 #' @importFrom utils download.file
 #' @importFrom clusterProfiler read.gmt
-#' @importFrom DOSE build_Anno
 #' @examples
 #' \dontrun{
 #' # Example usage of get_celltype_data function
@@ -255,6 +250,7 @@ get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021'
       TERM2NAME <- TERM2GENE %>% mutate(description=term) %>% select(term, description)
     }
 
+    build_Anno=getFromNamespace("build_Anno", "DOSE")
     # Create gene set list
     USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
 
@@ -277,13 +273,13 @@ get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021'
 #' @param minGSSize Minimum gene set size for filtering.
 #' @param maxGSSize Maximum gene set size for filtering.
 #' @return A filtered list of gene sets that meet the size constraints and background genes criteria.
-#' @importFrom DOSE geneSet_filter
 #' @export
 filter_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
   # Create temporary values to name the background genes
   tmp.val <- seq_along(bg_genes)
   names(tmp.val) <- bg_genes
   # Filter the gene set list
+  geneSet_filter=getFromNamespace('geneSet_filter','DOSE')
   geneSetList_filtered <- geneSet_filter(geneSetList, tmp.val, minGSSize, maxGSSize)
   return(geneSetList_filtered)
 }

@@ -19,7 +19,7 @@ aggregate_geneSet(
 \item{method}{A character string specifying the method to use for aggregation.
 Options include 'mean', 'median', 'meanabs', 'meansqr', 'maxmean',
 'sig_n', 'sign_test', 'rank_sum', 'ks_orig', 'ks_weighted', 'ks_sum',
-and 'locfdr'. Default is c('mean', 'median', ...).}
+and 'locfdr'. Default is 'mean'.}
 
 \item{FUN}{A custom function provided by the user for aggregation; if specified,
 it overrides the 'method' parameter.}
