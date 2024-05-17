@@ -1,132 +1,92 @@
-
-
-get_GO_data=getFromNamespace('get_GO_data','clusterProfiler')
-geneSet_filter=getFromNamespace('geneSet_filter','DOSE')
-build_Anno=getFromNamespace("build_Anno", "DOSE")
-getGeneSet=getFromNamespace('getGeneSet','DOSE')
-get_DGN_data=getFromNamespace('get_DGN_data','DOSE')
-mapIds=getFromNamespace('mapIds','AnnotationDbi')
-EXTID2NAME=getFromNamespace('EXTID2NAME','DOSE')
-prepare_KEGG=getFromNamespace('prepare_KEGG','clusterProfiler')
-prepare_WP_data=getFromNamespace('prepare_WP_data','clusterProfiler')
-get_Reactome_DATA=getFromNamespace('get_Reactome_DATA','ReactomePA')
-get_MeSH_data = getFromNamespace('get_MeSH_data', 'meshes')
-
-get_geneSetList <- function(type=c('GO',
-                                   'DO',
-                                   'KEGG',
-                                   'WikiPathways',
-                                   'Reactome',
-                                   'MeSH',
-                                   'SynGO',
-                                   'CellType'),
-                              parameter){
-  type=match.arg(type)
-  if (type=='GO_BP') {
-    annoData <- get_GO_data('org.Hs.eg.db', ont = 'BP', 'SYMBOL')
-    geneSetList <- getGeneSet(annoData)
-  } else if (type=='GO_MF') {
-    annoData <- get_GO_data('org.Hs.eg.db', ont = 'MF', 'SYMBOL')
-    geneSetList <- getGeneSet(annoData)
-  } else if (type=='GO_CC') {
-    annoData <- get_GO_data('org.Hs.eg.db', ont = 'CC', 'SYMBOL')
-    geneSetList <- getGeneSet(annoData)
-  } else if (type=='DisGeNet') {
-    annoData=get_DGN_data()
-    geneSetList <- getGeneSet(annoData)
-    # convert entrezid to symbol
-    geneSetList <- lapply(geneSetList, function(x) entrezid2symbol(x))
-  } else if (type=='KEGG') {
-    annoData <- prepare_KEGG('hsa', 'MKEGG', 'kegg')
-    geneSetList <- getGeneSet(annoData)
-    geneSetList <- lapply(geneSetList, function(x) entrezid2symbol(x))
-  } else if (type=='WikiPathways'){
-    wpdata <- prepare_WP_data('Homo sapiens')
-    TERM2GENE = wpdata$WPID2GENE
-    TERM2NAME = wpdata$WPID2NAME
-    annoData = build_Anno(TERM2GENE, TERM2NAME)
-    geneSetList <- getGeneSet(annoData)
-    geneSetList <- lapply(geneSetList, function(x) entrezid2symbol(x))
-  } else if(type=='Reactome'){
-    annoData=get_Reactome_DATA('human')
-    geneSetList <- getGeneSet(annoData)
-  }
-  return(geneSetList)
-}
-
-
-# From BioC 3.14 (Nov. 2021, with R-4.2.0)
-library(AnnotationHub)
-library(MeSHDbi)
-ah <- AnnotationHub(localHub=TRUE)
-hsa <- query(ah, c("MeSHDb", "Homo sapiens"))
-file_hsa <- hsa[[1]]
-db <- MeSHDbi::MeSHDb(file_hsa)
-
-
-
-#' Filter Gene Set List
+#' Get Gene Set List based on type and parameters
 #'
-#' This function filters a list of gene sets based on the background genes and specified size constraints.
+#' This function retrieves a gene set list based on the specified type and additional parameters.
 #'
-#' @param bg_genes A vector of background gene symbols to be used for filtering.
-#' @param geneSetList A list of gene sets to be filtered.
-#' @param minGSSize Minimum gene set size for filtering.
-#' @param maxGSSize Maximum gene set size for filtering.
-#' @return A filtered list of gene sets that meet the size constraints and background genes criteria.
-#' @importFrom DOSE geneSet_filter
-#' @export
-filter_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
-  # Create temporary values to name the background genes
-  tmp.val <- seq_along(bg_genes)
-  names(tmp.val) <- bg_genes
-  
-  # Filter the gene set list
-  geneSetList_filtered <- geneSet_filter(geneSetList, tmp.val, minGSSize, maxGSSize)
-  
-  return(geneSetList_filtered)
-}
-
-
-
-
-#' Convert Entrez IDs to Gene Symbols
+#' @details
+#' The function supports various types of gene sets, including 'GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', and 'CellType'.
+#' For 'GO', the additional parameter can be 'BP', 'MF', or 'CC'.
+#' For 'CellType', the additional parameter can be 'Seidlitz2020', 'Lake2018', or 'Martins2021'.
 #'
-#' This function converts a vector of Entrez IDs to gene symbols using the org.Hs.eg.db annotation package.
-#'
-#' @param entrezid A vector of Entrez IDs to be converted to gene symbols.
-#' @return A vector of gene symbols corresponding to the input Entrez IDs.
+#' @param type The type of gene set data to retrieve. Must be one of 'GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'.
+#' @param parameter Additional parameter for specific types like 'GO' and 'CellType'. For 'GO', use 'BP', 'MF', or 'CC'. For 'CellType', use 'Seidlitz2020', 'Lake2018', or 'Martins2021'.
+#' @return A list of gene sets where each element is a vector of genes associated with a specific term.
+#' @importFrom dplyr filter rename
+#' @importFrom utils download.file
+#' @importFrom clusterProfiler read.gmt
+#' @importFrom readr read_csv
+#' @importFrom tibble as_tibble
+#' @importFrom DOSE build_Anno getGeneSet get_DGN_data
+#' @importFrom clusterProfiler get_GO_data prepare_KEGG prepare_WP_data
+#' @importFrom ReactomePA get_Reactome_DATA
+#' @importFrom meshes get_MeSH_data
 #' @importFrom AnnotationDbi mapIds
 #' @import org.Hs.eg.db
 #' @examples
 #' \dontrun{
-#' entrez_ids <- c("2451", "3142", "66666")
-#' gene_symbols <- entrezid2symbol(entrez_ids)
-#' print(gene_symbols)
+#' # Example usage of get_geneSetList function
+#' geneSetList <- get_geneSetList('GO', 'BP')
+#' print(geneSetList)
 #' }
 #'
 #' @export
-entrezid2symbol <- function(entrezid) {
-  # Ensure input is character vector
-  entrezid <- as.character(entrezid)
+get_geneSetList <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'),
+                            parameter = NULL) {
+  type <- match.arg(type)
+
+  # Main processing based on type
+  annoData <- NULL
+  convert_to_symbol <- FALSE
   
-  # Map Entrez IDs to gene symbols
-  mappedSymbol <- suppressMessages(
-    mapIds(
-      x = org.Hs.eg.db,
-      keys = entrezid,
-      keytype = "ENTREZID",
-      column = "SYMBOL",
-      multiVals = "first"
-    )
-  )
+  if (type == 'GO') {
+    if (is.null(parameter) || !parameter %in% c('BP', 'MF', 'CC')) {
+      stop("For type 'GO', parameter must be one of 'BP', 'MF', or 'CC'.")
+    }
+    annoData <- get_GO_data('org.Hs.eg.db', ont = parameter, 'SYMBOL')
+  } else if (type == 'DisGeNet') {
+    annoData <- get_DGN_data()
+    convert_to_symbol <- TRUE
+  } else if (type == 'KEGG') {
+    annoData <- prepare_KEGG('hsa', 'MKEGG', 'kegg')
+    convert_to_symbol <- TRUE
+  } else if (type == 'WikiPathways') {
+    wpdata <- prepare_WP_data('Homo sapiens')
+    TERM2GENE <- wpdata$WPID2GENE
+    TERM2NAME <- wpdata$WPID2NAME
+    annoData <- build_Anno(TERM2GENE, TERM2NAME)
+    convert_to_symbol <- TRUE
+  } else if (type == 'Reactome') {
+    annoData <- get_Reactome_DATA('human')
+  } else if (type == 'CellType') {
+    if (is.null(parameter) || !parameter %in% c('Seidlitz2020', 'Lake2018', 'Martins2021')) {
+      stop("For type 'CellType', parameter must be one of 'Seidlitz2020', 'Lake2018', or 'Martins2021'.")
+    }
+    annoData <- get_celltype_data(parameter)
+  } else if (type=='SynGO'){
+    annoData <- get_SynGO_data()
+  }
   
-  # Remove NA values and attributes
-  mappedSymbol <- na.omit(mappedSymbol)
-  attributes(mappedSymbol) <- NULL
+  geneSetList <- getGeneSet(annoData)
   
-  return(unname(mappedSymbol))
+  if (length(geneSetList) > 10000) {
+    warning("The geneSetList is quite large (>10k), this may take some time to process.")
+  }
+  
+  if (convert_to_symbol) {
+    geneSetList <- lapply(geneSetList, entrezid2symbol)
+  }
+  
+  return(geneSetList)
 }
+
+
+# # From BioC 3.14 (Nov. 2021, with R-4.2.0)
+# library(AnnotationHub)
+# library(MeSHDbi)
+# ah <- AnnotationHub(localHub=TRUE)
+# hsa <- query(ah, c("MeSHDb", "Homo sapiens"))
+# file_hsa <- hsa[[1]]
+# db <- MeSHDbi::MeSHDb(file_hsa)
+
 
 
 
@@ -193,14 +153,14 @@ get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_do
     # Process TERM2GENE
     TERM2GENE <- data %>%
       select(id, hgnc_symbol) %>%
-      rename(cLabel = id, geneID = hgnc_symbol) %>%
-      mutate(geneID = strsplit(geneID, ";")) %>%
-      unnest(cols = c(geneID))
+      rename(term = id,gene=hgnc_symbol) %>%
+      mutate(gene = strsplit(gene, ";")) %>%
+      unnest(cols = c(gene))
 
     # Process TERM2NAME
     TERM2NAME <- data %>%
       select(id, name) %>%
-      rename(cLabel = id, description = name)
+      rename(term = id, description = name)
 
     # Use build_Anno function from DOSE package
     USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
@@ -241,10 +201,10 @@ get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_do
 #'
 #' @param type The type of cell type gene set data to download and process. Must be one of 'Seidlitz2020', 'Lake2018', 'Martins2021'.
 #' @return A list of gene sets where each element is a vector of genes associated with a specific term.
-#' @importFrom dplyr filter rename
+#' @importFrom dplyr filter rename select
 #' @importFrom utils download.file
 #' @importFrom clusterProfiler read.gmt
-#' @importFrom tibble as_tibble
+#' @importFrom DOSE build_Anno
 #' @examples
 #' \dontrun{
 #' # Example usage of get_celltype_data function
@@ -278,25 +238,94 @@ get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021'
   tryCatch({
     if (type == 'Seidlitz2020') {
       # Read CSV file
-      df.glist <- read.csv(temp_file)
-      df.glist <- df.glist %>% filter(!is.na(gene)) %>% rename(term = class)
+      TERM2GENE <- read.csv(temp_file) %>% 
+              mutate(term=class) %>% 
+              filter(!gene == '') %>% 
+              complete.cases() %>% 
+              select(term, gene)
+      TERM2NAME <- TERM2GENE %>% 
+                    mutate(description=term) %>% 
+                    select(term, description)
+  
     } else {
       # Read GMT file
-      df.glist <- read.gmt(temp_file)
-      df.glist <- df.glist %>% filter(!is.na(gene))
+      TERM2GENE <- read.gmt(temp_file) %>% 
+                    filter(!gene == '') %>%
+                    select(term, gene)
+      TERM2NAME <- TERM2GENE %>% mutate(description=term) %>% select(term, description)
     }
-    
+
     # Create gene set list
-    geneSetList <- split(df.glist$gene, df.glist$term)
+    USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
 
     message("Cell type data has been processed and temporary files removed.")
-    return(geneSetList)
+    return(USER_DATA)
   }, error = function(e) {
     stop("An error occurred while processing cell type data: ", e$message)
   })
 }
 
 
+
+
+#' Filter Gene Set List
+#'
+#' This function filters a list of gene sets based on the background genes and specified size constraints.
+#'
+#' @param bg_genes A vector of background gene symbols to be used for filtering.
+#' @param geneSetList A list of gene sets to be filtered.
+#' @param minGSSize Minimum gene set size for filtering.
+#' @param maxGSSize Maximum gene set size for filtering.
+#' @return A filtered list of gene sets that meet the size constraints and background genes criteria.
+#' @importFrom DOSE geneSet_filter
+#' @export
+filter_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
+  # Create temporary values to name the background genes
+  tmp.val <- seq_along(bg_genes)
+  names(tmp.val) <- bg_genes
+  # Filter the gene set list
+  geneSetList_filtered <- geneSet_filter(geneSetList, tmp.val, minGSSize, maxGSSize)
+  return(geneSetList_filtered)
+}
+
+
+
+
+#' Convert Entrez IDs to Gene Symbols
+#'
+#' This function converts a vector of Entrez IDs to gene symbols using the org.Hs.eg.db annotation package.
+#'
+#' @param entrezid A vector of Entrez IDs to be converted to gene symbols.
+#' @return A vector of gene symbols corresponding to the input Entrez IDs.
+#' @importFrom AnnotationDbi mapIds
+#' @import org.Hs.eg.db
+#' @examples
+#' \dontrun{
+#' entrez_ids <- c("2451", "3142", "66666")
+#' gene_symbols <- entrezid2symbol(entrez_ids)
+#' print(gene_symbols)
+#' }
+#'
+#' @export
+entrezid2symbol <- function(entrezid) {
+  # Ensure input is character vector
+  entrezid <- as.character(entrezid)
+  
+  # Map Entrez IDs to gene symbols
+  mappedSymbol <- suppressMessages(
+    mapIds(
+      x = org.Hs.eg.db,
+      keys = entrezid,
+      keytype = "ENTREZID",
+      column = "SYMBOL",
+      multiVals = "first"
+    )
+  )
+  # Remove NA values and attributes
+  mappedSymbol <- na.omit(mappedSymbol)
+  attributes(mappedSymbol) <- NULL
+  return(unname(mappedSymbol))
+}
 
 
 
