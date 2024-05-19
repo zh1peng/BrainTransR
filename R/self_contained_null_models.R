@@ -1,4 +1,4 @@
-load_permid <- function(data_path='F:/Google Drive/post-doc/vitural_histology_revisit/revision_code/data/BrainInfo/perm_id_weights',
+get_permid <- function(data_path='F:/Google Drive/post-doc/vitural_histology_revisit/revision_code/data/BrainInfo/perm_id_weights',
                              atlas=c('desikan',
                                     'schaefer100',
                                     'schaefer200',
