@@ -1,4 +1,4 @@
-# BrainEnrich: An R package correlating imaging-derived features with transcriptional profiles 🧠🧬
+# BrainEnrich: Revealing Biological Insights from Imaging-Derived Features through Transcriptomic Enrichment 🧠🧬
 
 ## Aim of the Toolbox 🎯
 

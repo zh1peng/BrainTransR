@@ -9,9 +9,7 @@
 #'               Options include 'mean', 'median', 'meanabs', 'meansqr', 'maxmean', 
 #'               'sig_n', 'sign_test', 'rank_sum', 'ks_orig', 'ks_weighted', 'ks_sum', 
 #'               and 'locfdr'. Default is 'mean'.
-#' @param FUN A custom function provided by the user for aggregation; if specified, 
-#'            it overrides the 'method' parameter.
-#'
+#
 #' @return Returns a numeric score based on the specified aggregation method.
 #' @examples
 #' geneList <- matrix(rnorm(100), ncol=10, dimnames=list(gene=paste("Gene", 1:10), model=1:10))
@@ -26,7 +24,7 @@ aggregate_geneSet <- function(geneList, # named correlation/coefficient matrix
                                   "mean", "median", "meanabs", "meansqr",
                                   "maxmean",   "ks_orig", "ks_weighted", 
                                   "ks_pos_neg_sum", "local_fdr", 
-                                  "sign_test", "rank_sum")) {
+                                  "sign_test", "rank_sum", "custom")) {
     if (is.function(method)) { # if method is a custom function
         aggre_func <- method
         method <- "custom"
@@ -219,3 +217,27 @@ aggregate_geneSet <- function(geneList, # named correlation/coefficient matrix
     })
     return(gs_score)
 }
+
+
+
+#' Aggregate Gene Set List
+#'
+#' This function aggregates multiple gene sets of interest after filtering, using a provided gene list.
+#'
+#' @param geneSetList A list of multiple gene sets of interest after filtering.
+#' @param geneList A list of genes, which can be either a true gene list or a null gene list.
+#' @param ... Additional arguments passed to the `aggregate_geneSet` function.
+#'
+#' @return A list of aggregated scores for each gene set.
+#' @export
+#'
+#' @examples
+
+aggregate_geneSetList <- function(geneSetList, geneList, ...) {
+  allgs.scores <- lapply(geneSetList, function(gs) {
+    aggregate_geneSet(geneList = geneList, geneSet = gs, ...)
+  })
+  return(allgs.scores)
+}
+
+
