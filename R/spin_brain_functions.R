@@ -1,35 +1,6 @@
-get_permid <- function(data_path='F:/Google Drive/post-doc/vitural_histology_revisit/revision_code/data/BrainInfo/perm_id_weights',
-                             atlas=c('desikan',
-                                    'schaefer100',
-                                    'schaefer200',
-                                    'schaefer300'),
-                             type=c('spin_brain','random_brain'),
-                             perm.n=5000){
-# load pre-generated perm.id
-atlas=match.arg(atlas)
-type=match.arg(type)
-
-if (perm.n>10000){stop('>10k perm.id is supported')} 
-
- perm.id.file=sprintf('%s/%s_%s_perm_id.rds',data_path, atlas,type)
- 
- # check if perm.id.file exist
-  if (!file.exists(perm.id.file)){
-    stop(sprintf('perm.id file %s does not exist',perm.id.file))
-  }
-
- perm.id=readRDS(perm.id.file)   
-  return(perm.id[,1:perm.n])
-}
-
-
-
-
-
-
 #' Generate Null Brain Data
 #'
-#' This function generates null brain datasets based on permutations provided in perm.id.
+#' This function generates null brain datasets based on permutations provided in perm_id.
 #' It rearranges the brain data according to the permutations and outputs the shuffled datasets.
 #'
 #' @param brain_data A matrix representing brain data, where each row corresponds to a region.
@@ -73,203 +44,173 @@ generate_null_brain_data <- function(brain_data, perm_id) {
 
 
 
-# Function to generate a permutation map from a set of cortical regions of interest to itself, 
-# while (approximately) preserving contiguity and hemispheric symmetry.
-# The function is based on a rotation of the FreeSurfer projection of coordinates
-# of a set of regions of interest on the sphere.
-#
-# Inputs:
-# coord.l       coordinates of left hemisphere regions on the sphere        array of size [n(LH regions) x 3]
-# coord.r       coordinates of right hemisphere regions on the sphere       array of size [n(RH regions) x 3]
-# nrot          number of rotations (default = 10000)                       scalar
-#
-# Output:
-# perm.id      array of permutations, from set of regions to itself        array of size [n(total regions) x nrot]
-#
-# required library: matrixStats (for rowMins function)
-#
-# Frantisek Vasa, fv247@cam.ac.uk, June 2017 - July 2018
-#       Updated on 16/10/2019 with permutation scheme that uniformly samples the space of permutations on the sphere
-#       See github repo (@frantisekvasa) and references within for details
+#' Rotate Parcellation
+#'
+#' Generate a permutation map from a set of cortical regions of interest to itself,
+#' while (approximately) preserving contiguity and hemispheric symmetry.
+#' The function is based on a rotation of the FreeSurfer projection of coordinates
+#' of a set of regions of interest on the sphere. 
+#' #' This function is modified from the original version available at:
+#' https://github.com/frantisekvasa/rotate_parcellation
+#'
+#' Modifications include:
+#' - Added support for scenarios where only one hemisphere's coordinates are provided.
+#' - Improved handling of coordinate dimensions and conditional concatenation of reference and rotation indices.
+#' - Included importFrom directives for required functions from `matrixStats` and `clue`.
+#' - Ensured the function generates `nrot + 100` permutations, removes duplicates, and returns exactly `nrot` unique permutations.
 
-library(matrixStats)
-library(dplyr)
-rotate.parcellation.lh = function(coord.l,nrot=10000) {
-  # check that coordinate dimensions are correct
-  if (!all(dim(coord.l)[2]==3)) {
-    if (all(dim(coord.l)[1]==3)) {
-      print('transposing coordinates to be of dimension nROI x 3')
-      coord.l = t(coord.l)
+#' @param coord.l Coordinates of left hemisphere regions on the sphere (array of size [n(LH regions) x 3]). Can be NULL if only right hemisphere is used.
+#' @param coord.r Coordinates of right hemisphere regions on the sphere (array of size [n(RH regions) x 3]). Can be NULL if only left hemisphere is used.
+#' @param nrot Number of rotations (default = 10000).
+#' @param method Method to match rotated and unrotated regions; options are 'vasa' (faster, can be suboptimal) or 'hungarian' (default, slower, optimal).
+#' @return Array of permutations, from set of regions to itself (array of size [n(total regions) x nrot]).
+#' @importFrom matrixStats rowMins
+#' @importFrom clue solve_LSAP
+#' @export
+#' @examples
+#' # Example usage with both hemispheres
+#' coord.l <- matrix(runif(30), nrow = 10, ncol = 3)
+#' coord.r <- matrix(runif(30), nrow = 10, ncol = 3)
+#' permutations <- rotate_parcellation(coord.l, coord.r)
+#'
+#' # Example usage with one hemisphere (left)
+#' coord.l <- matrix(runif(30), nrow = 10, ncol = 3)
+#' permutations <- rotate_parcellation(coord.l, NULL)
+#'
+#' # Example usage with one hemisphere (right)
+#' coord.r <- matrix(runif(30), nrow = 10, ncol = 3)
+#' permutations <- rotate_parcellation(NULL, coord.r)
+rotate_parcellation <- function(coord.l = NULL, 
+                                coord.r = NULL, nrot = 10000, 
+                                method = c('hungarian', 'vasa')) {
+  method=match.arg(method)
+  # Check that at least one set of coordinates is provided
+  if (is.null(coord.l) && is.null(coord.r)) {
+    stop("At least one of coord.l or coord.r must be provided.")
+  }
+
+  # Check that coordinate dimensions are correct
+  if (!is.null(coord.l) && dim(coord.l)[2] != 3) {
+    if (dim(coord.l)[1] == 3) {
+      coord.l <- t(coord.l)
+    } else {
+      stop("Left hemisphere coordinates must have dimensions [n(LH regions) x 3].")
+    }
+  }
+  if (!is.null(coord.r) && dim(coord.r)[2] != 3) {
+    if (dim(coord.r)[1] == 3) {
+      coord.r <- t(coord.r)
+    } else {
+      stop("Right hemisphere coordinates must have dimensions [n(RH regions) x 3].")
     }
   }
   
-  nroi.l = dim(coord.l)[1]   # n(regions) in the left hemisphere
-  nroi = nroi.l      # total n(regions)
+  nroi.l <- if (!is.null(coord.l)) dim(coord.l)[1] else 0
+  nroi.r <- if (!is.null(coord.r)) dim(coord.r)[1] else 0
+  nroi <- nroi.l + nroi.r
   
-  perm.id = array(0,dim=c(nroi,nrot)); # initialise output array
-  r = 0; c = 0; # count successful (r) and unsuccessful (c) iterations
+  perm_id <- array(0, dim = c(nroi, nrot))
+  r <- 0
+  c <- 0
   
-  # UPDATED 16/10/2019 - set up updated permutation scheme 
-  I1 = diag(3); I1[1,1] = -1;
-  # main loop -  use of "while" is to ensure any rotation that maps to itself is excluded (this is rare, but can happen)
-  while (r < nrot) {
+  I1 <- diag(3)
+  I1[1, 1] <- -1
+  
+  while (r < nrot+100) {
     
-    # UPDATED 16/10/2019
-    A = matrix(rnorm(9, mean = 0, sd = 1), nrow = 3, ncol = 3)
-    qrdec = qr(A)       # QR decomposition
-    TL = qr.Q(qrdec)    # Q matrix
-    temp = qr.R(qrdec)  # R matrix
-    TL = TL%*%diag(sign(diag(temp)))
-    if (det(TL)<0) {
-      TL[,1] = -TL[,1]
+    A <- matrix(rnorm(9, mean = 0, sd = 1), nrow = 3, ncol = 3)
+    qrdec <- qr(A)
+    TL <- qr.Q(qrdec)
+    temp <- qr.R(qrdec)
+    TL <- TL %*% diag(sign(diag(temp)))
+    if (det(TL) < 0) {
+      TL[, 1] <- -TL[, 1]
     }
-    # reflect across the Y-Z plane for right hemisphere
-
-    coord.l.rot = coord.l %*% TL; # transformed (rotated) left coordinates
-    dist.l = array(0,dim=c(nroi.l,nroi.l));
-    for (i in 1:nroi.l) { # left
-      for (j in 1:nroi.l) {
-        dist.l[i,j] = sqrt( sum( (coord.l[i,]-coord.l.rot[j,])^2 ) )
-      }
-    }
-   
+    TR <- I1 %*% TL %*% I1
     
-    # LEFT
-    # calculate distances, proceed in order of "most distant minimum"
-    # -> for each unrotated region find closest rotated region (minimum), then assign the most distant pair (maximum of the minima), 
-    # as this region is the hardest to match and would only become harder as other regions are assigned
-    temp.dist.l = dist.l
-    rot.l = c(); ref.l = c();
-    #tba.r = tba.c = 1:nroi.l # rows and columns that are yet "to be assigned"
-    for (i in 1:nroi.l) {
-      # max(min) (described above)
-      ref.ix = which( rowMins(temp.dist.l,na.rm=T) == max(rowMins(temp.dist.l,na.rm=T),na.rm=T) )   # "furthest" row
-      rot.ix = which( temp.dist.l[ref.ix,] == min(temp.dist.l[ref.ix,],na.rm=T) ) # closest region
+    coord.l.rot <- if (!is.null(coord.l)) coord.l %*% TL else NULL
+    coord.r.rot <- if (!is.null(coord.r)) coord.r %*% TR else NULL
+    
+    dist.l <- if (!is.null(coord.l)) as.matrix(dist(coord.l, coord.l.rot)) else NULL
+    dist.r <- if (!is.null(coord.r)) as.matrix(dist(coord.r, coord.r.rot)) else NULL
+    
+    if (method == 'vasa') {
       
-      # # alternative option: mean of row - take the closest match for unrotated region that is on average furthest from rotated regions
-      # ref.ix = which(nanmean(temp.dist.l,2)==nanmax(nanmean(temp.dist.l,2)))    # "furthest" row
-      # rot.ix = which(temp.dist.l(ref.ix,:)==nanmin(temp.dist.l(ref.ix,:)))      # closest region    
-      ref.l = c(ref.l,ref.ix) # store reference and rotated indices
-      rot.l = c(rot.l,rot.ix)
-      temp.dist.l[,rot.ix] = NA # set temporary column indices to NaN, to be disregarded in next iteration
-      temp.dist.l[ref.ix,] = 0 # because in the above form of the code, R doesn't deal well with whole rows and columns of NaN, set row to low value (which won't matter as furthest rows are assigned first)
-      #temp.dist.l[,rot.ix] = NA # set temporary indices to NaN, to be disregarded in next iteration
-      #temp.dist.l[ref.ix,] = NA
+      if (!is.null(coord.l)) {
+        temp.dist.l <- dist.l
+        rot.l <- ref.l <- numeric(nroi.l)
+        for (i in seq_len(nroi.l)) {
+          ref.ix <- which(rowMins(temp.dist.l, na.rm = TRUE) == max(rowMins(temp.dist.l, na.rm = TRUE), na.rm = TRUE))
+          rot.ix <- which(temp.dist.l[ref.ix, ] == min(temp.dist.l[ref.ix, ], na.rm = TRUE))
+          ref.l[i] <- ref.ix
+          rot.l[i] <- rot.ix
+          temp.dist.l[, rot.ix] <- NA
+          temp.dist.l[ref.ix, ] <- 0
+        }
+      }
+      
+      if (!is.null(coord.r)) {
+        temp.dist.r <- dist.r
+        rot.r <- ref.r <- numeric(nroi.r)
+        for (i in seq_len(nroi.r)) {
+          ref.ix <- which(rowMins(temp.dist.r, na.rm = TRUE) == max(rowMins(temp.dist.r, na.rm = TRUE), na.rm = TRUE))
+          rot.ix <- which(temp.dist.r[ref.ix, ] == min(temp.dist.r[ref.ix, ], na.rm = TRUE))
+          ref.r[i] <- ref.ix
+          rot.r[i] <- rot.ix
+          temp.dist.r[, rot.ix] <- NA
+          temp.dist.r[ref.ix, ] <- 0
+        }
+      }
+      
+    } else if (method == 'hungarian') {
+      
+      if (!is.null(coord.l)) {
+        rot.l <- as.vector(solve_LSAP(dist.l, maximum = FALSE))
+        ref.l <- seq_len(nroi.l)
+      }
+      
+      if (!is.null(coord.r)) {
+        rot.r <- as.vector(solve_LSAP(dist.r, maximum = FALSE))
+        ref.r <- seq_len(nroi.r)
+      }
+      
+    } 
+
+    # Correctly concatenate vectors without including NULL values
+    ref.lr <- c()
+    rot.lr <- c()
+    if (!is.null(coord.l)) {
+      ref.lr <- c(ref.lr, ref.l)
+      rot.lr <- c(rot.lr, rot.l)
+    }
+    if (!is.null(coord.r)) {
+      ref.lr <- c(ref.lr, nroi.l + ref.r)
+      rot.lr <- c(rot.lr, nroi.l + rot.r)
     }
     
-
-    # mapping is x->y
-    # collate vectors from both hemispheres + sort mapping according to "reference" vector
-    b = sort(ref.l,index.return=T); 
-    ref.l.sort = ref.l[b$ix]; rot.l.sort = rot.l[b$ix];
+    b <- sort(ref.lr, index.return = TRUE)
+    ref.lr.sort <- ref.lr[b$ix]
+    rot.lr.sort <- rot.lr[b$ix]
     
-    # verify that permutation worked (output should be vector with values 1:nroi = 1:(nroi_l+nroi_r))
-    if (!all(sort(rot.l.sort,decreasing=F)==c(1:nroi))) {
-      #save.image('~/Desktop/perm_error.RData')
+    if (!all(sort(rot.lr.sort, decreasing = FALSE) == seq_len(nroi))) {
       browser("permutation error")
     }
     
-    # verify that permutation does not map to itself
-    if (!all(rot.l.sort==c(1:nroi))) {
-      r = r+1
-      perm.id[,r] = rot.l.sort # if it doesn't, store it
+    if (!all(rot.lr.sort == seq_len(nroi))) {
+      r <- r + 1
+      perm_id[, r] <- rot.lr.sort
     } else {
-      c = c+1
-      print(paste('map to itself n. ',toString(c),sep=''))
+      c <- c + 1
+      message(sprintf("map to itself n. %d", c))
     }
     
-    # track progress
-    if (r%%10==0) print(paste('permutation ',toString(r),' of ',toString(nrot),sep=''))
+    if (r %% 10 == 0) message(sprintf("permutation %d of %d", r, nrot+100))
   }
-  return(perm.id)
+    # Remove duplicate columns and ensure only nrot unique permutations are returned
+    perm_id <- perm_id[, !duplicated(t(perm_id))]
+    if (ncol(perm_id) > nrot) {
+      perm_id <- perm_id[, 1:nrot]
+    }
+  return(perm_id)
 }
-
-
-create_lh_perm.id <- function(data_path='F:/Google Drive/post-doc/vitural_histology_revisit/revision_code/data/BrainInfo/perm_id_weights',  
-                              atlas=c('desikan',
-                                      'schaefer100',
-                                      'schaefer200',
-                                      'schaefer300'),
-                                        nreps=10000,
-                              null_type=c('random_brain','spin_brain')){
-  atlas=match.arg(atlas)
-  null_type=match.arg(null_type)
-  n.region <- switch(atlas,
-    'desikan'       = 34,
-    'schaefer100'   = 50,
-    'schaefer200'   = 100,
-    'schaefer300'   = 150,
-    NA_integer_
-  )
-
-
-  if (null_type=='spin_brain'){
-  centroid_csv=sprintf('%s/%s_centroid.csv',data_path,atlas)
-
-  # check if centroid_csv exist
-  if (!file.exists(centroid_csv)){
-   stop(sprintf('centroid_csv %s does not exist',centroid_csv))
-  }
-
-  centroid_data=read.csv(centroid_csv)
-  centroid.l=centroid_data %>%  select(starts_with('centroid'))
-  perm.id=rotate.parcellation.lh(as.matrix(centroid.l),
-                                 nrot=nreps+100)
-  }else if (null_type=='random_brain') {
-  id.mat=matrix(rep(c(1:n.region),times=nreps+100),nrow = n.region,ncol = nreps+100)
-  perm.id=apply(id.mat, MARGIN = 2, function(x) sample(x, replace = FALSE, size = length(x)))
-  }
-
-  print(paste0('find duplciated columns: ', sum(duplicated(t(perm.id)))))
-  perm.id.nodup=perm.id[, !duplicated(t(perm.id))]
-  perm.id.final=perm.id.nodup[,1:nreps]
-  return(perm.id.final)
-}
-
-
-
-
-# ===================== generate perm.id =====================
-data_path='F:/Google Drive/post-doc/vitural_histology_revisit/revision_code/data/BrainInfo/perm_id_weights'
-
-for (atlas_i in c(
-        'schaefer300')){
-
-for (null_type in c('random_brain','spin_brain')){
-perm.id=create_lh_perm.id(data_path=data_path, 
-                         atlas=atlas_i,
-                         nreps=10000,
-                         null_type=null_type)
-savename=sprintf('%s/%s_%s_perm_id.rds',data_path,atlas_i,null_type)
-saveRDS(perm.id, savename)
- }
-}
-
-
-# ===================== generate Moran_w for each atlas =====================
-for (atlas_i in c('desikan',
-        'schaefer100',
-        'schaefer200',
-        'schaefer300')){
-
- centroid_csv=sprintf('%s/%s_centroid.csv',data_path,atlas_i)
-
-  # check if centroid_csv exist
-  if (!file.exists(centroid_csv)){
-   stop(sprintf('centroid_csv %s does not exist',centroid_csv))
-  }
-
- centroid_data=read.csv(centroid_csv)
- centroid.l=centroid_data %>%select(starts_with('centroid'))
- rownames(centroid.l)=centroid_data$Row
- dist.mat=as.matrix(dist(centroid.l))
- w=1/dist.mat
- diag(w)= 0
- savename=sprintf('%s/%s_Moran_w.rds',data_path,atlas_i)
- saveRDS(w, savename)
-}
-
-
-
-
 

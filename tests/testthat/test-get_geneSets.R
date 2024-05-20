@@ -1,4 +1,4 @@
-library(BrainTransR)
+library(BioBrain)
 
 
 tmp=get_geneSetList(type='GO',parameter = 'BP')

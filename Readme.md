@@ -24,7 +24,7 @@ Once available, it can be installed from GitHub via the `devtools` package:
 install.packages("devtools")
 
 # Install braintranscript from GitHub
-devtools::install_github("zh1peng/BrainTransR")
+devtools::install_github("zh1peng/BioBrain")
 ```
 
 ## Usage 📖

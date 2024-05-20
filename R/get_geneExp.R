@@ -31,7 +31,7 @@ get_geneExp <- function(atlas = c('desikan', 'schaefer100', 'schaefer200', 'scha
   }
 
   # Define the path to the gene expression data
-  data_path <- system.file("data", package = "BrainTransR")
+  data_path <- system.file("data", package = "BioBrain")
   GeneExpCSV <- file.path(data_path, sprintf('geneExp/%s_%s.csv', atlas, rdonor))
   
   # Check if the CSV file exists, otherwise stop
