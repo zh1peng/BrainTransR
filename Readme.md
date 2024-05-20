@@ -1,4 +1,4 @@
-# BraintransR: An R package correlating imaging-derived features with transcriptional profiles 🧠🧬
+# BioBrain: An R package correlating imaging-derived features with transcriptional profiles 🧠🧬
 
 ## Aim of the Toolbox 🎯
 
