@@ -10,9 +10,18 @@
 #'
 #' @examples
 #' example_data <- load_example_data('example.csv')
-load_example_data <- function(type=c('PC1','Cushing')) {
-  file_path <- system.file("extdata", filename, package = "yourPackageName")
-  
+get_brainExample <- function(type=c('PC1','Cushing')) {
+    
+    type <- match.arg(type)
+data_path <- system.file("extdata", package = "BrainEnrich")
+
+filename <- switch(type,
+                   PC1 = 'desikan_PC1_data.csv',
+                   Cushing = 'desikan_cushing_data.csv',
+                   stop("Invalid type")
+                  )
+
+  file_path <- file.path(data_path, sprintf('example/%s', filename))
   if (file_path == "") {
     stop(sprintf('File %s does not exist in the package', filename))
   }

@@ -19,6 +19,7 @@ devtools::has_devel()
 
 devtools::document()
 devtools::build()
+devtools::install()
 usethis::use_mit_license()
 
 usethis::use_testthat() # Create testthat infrastructure
