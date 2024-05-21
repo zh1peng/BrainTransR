@@ -89,7 +89,7 @@ aggregate_geneSet <- function(geneList, # named correlation/coefficient matrix
         },
         ks_orig = {
             function(genelist, geneSet) {
-                # function borrowed from clusterprofiler
+                # code obtained from DOSE: https://rdrr.io/bioc/DOSE/src/R/gsea.R
                 genelist <- sort(genelist, decreasing = TRUE)
                 geneSet <- intersect(geneSet, names(genelist))
                 N <- length(genelist)
@@ -114,7 +114,7 @@ aggregate_geneSet <- function(geneList, # named correlation/coefficient matrix
         },
         ks_weighted = {
             function(genelist, geneSet) {
-                # function borrowed from clusterprofiler
+                # code obtained from DOSE: https://rdrr.io/bioc/DOSE/src/R/gsea.R
                 genelist <- sort(genelist, decreasing = TRUE)
                 geneSet <- intersect(geneSet, names(genelist))
                 N <- length(genelist)
