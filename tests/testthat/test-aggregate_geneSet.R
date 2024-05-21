@@ -1,5 +1,5 @@
 library(testthat)
-library(BioBrain)
+library(BrainEnrich)
 
 # Set seed for reproducibility
 set.seed(123)

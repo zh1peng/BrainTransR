@@ -1,4 +1,4 @@
-library(BioBrain)
+library(BrainEnrich)
 
 
 tmp=get_geneSetList(type='GO',parameter = 'BP')

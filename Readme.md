@@ -24,7 +24,7 @@ Once available, it can be installed from GitHub via the `devtools` package:
 install.packages("devtools")
 
 # Install brainEnrich from GitHub
-devtools::install_github("zh1peng/BioBrain")
+devtools::install_github("zh1peng/BrainEnrich")
 ```
 
 ## Usage 📖

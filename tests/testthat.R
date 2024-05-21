@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-library(BioBrain)
+library(BrainEnrich)
 
-test_check("BioBrain")
+test_check("BrainEnrich")

@@ -30,3 +30,8 @@ usethis::use_test('aggregate_geneSet') # Create test file for aggregate_gene_dat
 devtools::test(filter = "aggregate_geneSet") 
 
 usethis::use_test('get_geneSets.R')
+usethis::use_test('brainenrich.R')
+
+
+
+# prepare example data
