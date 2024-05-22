@@ -4,12 +4,12 @@
 \alias{aggregate_geneSetList}
 \title{Aggregate Gene Set List}
 \usage{
-aggregate_geneSetList(geneSetList, geneList, ...)
+aggregate_geneSetList(geneList, geneSetList, ...)
 }
 \arguments{
-\item{geneSetList}{A list of multiple gene sets of interest after filtering.}
-
 \item{geneList}{A list of genes, which can be either a true gene list or a null gene list.}
+
+\item{geneSetList}{A list of multiple gene sets of interest after filtering.}
 
 \item{...}{Additional arguments passed to the \code{aggregate_geneSet} function.}
 }

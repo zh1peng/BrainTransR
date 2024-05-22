@@ -233,7 +233,7 @@ aggregate_geneSet <- function(geneList, # named correlation/coefficient matrix
 #'
 #' @examples
 
-aggregate_geneSetList <- function(geneSetList, geneList, ...) {
+aggregate_geneSetList <- function(geneList, geneSetList,  ...) {
   allgs.scores <- lapply(geneSetList, function(gs) {
     aggregate_geneSet(geneList = geneList, geneSet = gs, ...)
   })
@@ -241,3 +241,49 @@ aggregate_geneSetList <- function(geneSetList, geneList, ...) {
 }
 
 
+
+#' Aggregate Gene Set List Matching Co-Expression
+#'
+#' This function aggregates scores for multiple gene sets of interest, using a true gene list and sampled gene sets
+#' while ensuring matching co-expression patterns.
+#'
+#' @param geneSetList A list of gene sets of interest after filtering.
+#' @param sampled_geneSetList A list of sampled gene sets.
+#' @param geneList.true A matrix representing the true gene list, with dimensions m x 1.
+#' @param method method passed to `aggregate_geneSet`.
+#' @return A list of aggregated scores for each gene set.
+#' @examples
+#' # Example usage with dummy data
+#' geneList.true <- matrix(1:10, ncol = 1)
+#' rownames(geneList.true) <- letters[1:10]
+#' geneSetList <- list(set1 = c("a", "b", "c"), set2 = c("d", "e", "f"))
+#' sampled_geneSetList <- list(set1 = list(c("g", "h", "i")), set2 = list(c("j", "k", "l")))
+#' aggregate_geneSetList_matching_coexp(geneSetList, sampled_geneSetList, geneList.true)
+#' @export
+aggregate_geneSetList_matching_coexp <- function(geneList.true, 
+                                                 geneSetList, 
+                                                 sampled_geneSetList, 
+                                                 method) {
+  # Ensure geneList.true is a matrix with one column
+  if (!is.matrix(geneList.true) || ncol(geneList.true) != 1) {
+    stop('geneList.true should be a m x 1 matrix. Please include drop=FALSE when subsetting.')
+  }
+  
+  # Ensure the order in geneSetList and sampled_geneSetList are the same
+  if (!identical(names(geneSetList), names(sampled_geneSetList))) {
+    stop('geneSetList and sampled_geneSetList are not matched.')
+  }
+  
+  # Aggregate scores using mapply for parallel processing
+  allgs.scores <- mapply(function(gs, sampled_gs) {
+    geneList.null <- swap_geneList(geneList.true = geneList.true,
+                                   orig_gs = gs,
+                                   sampled_gs = sampled_gs)
+    gs.score <- aggregate_geneSet(geneList = geneList.null,
+                                  geneSet = gs,
+                                  method=method)
+    return(gs.score)
+  }, geneSetList, sampled_geneSetList, SIMPLIFY = FALSE)
+  
+  return(allgs.scores)
+}
