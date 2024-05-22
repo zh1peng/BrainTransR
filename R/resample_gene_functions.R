@@ -8,9 +8,9 @@
 #' @return A matrix of permuted gene lists.
 #' @examples
 #' gene_data <- matrix(rnorm(100), nrow=10)
-#' resampled_gene_list <- resampling_geneList(gene_data, n_perm=100)
+#' resampled_gene <- resampling_geneList(gene_data, n_perm=100)
 #' @export
-resample_geneList <- function(geneList.true, n_perm = 5000) {
+resample_gene <- function(geneList.true, n_perm = 5000) {
 
   # Check if the number of permutations requested exceeds 10,000. If it does, stop the function and display an error message.
   if (n_perm > 10000) {
@@ -68,13 +68,14 @@ resample_geneList <- function(geneList.true, n_perm = 5000) {
 #' Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
 #' Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.
 #' Human Brain Mapping, 43(3), 885–901. \url{https://doi.org/10.1002/hbm.25711}
-resample_geneSetList_coexp_matched <- function(gene_data, geneSetList, tol = 0.01, max_iter = 1000000, n_perm = 5000) {
+resample_gene_coexp_matched <- function(gene_data, geneSetList, tol = 0.01, max_iter = 1000000, n_perm = 5000) {
   # Calculate the co-expression matrix
   coexp_matrix <- cor(gene_data)
-  
+  total_gs <- length(geneSetList)
   # Sample each gene set to match co-expression patterns
-  sampled_geneSetList <- lapply(geneSetList, function(gs) {
-    message(sprintf('Sampling gene set %s\n', gs))
+  sampled_geneSetList <- lapply(seq_along(geneSetList), function(i) {
+    gs <- geneSetList[[i]]
+    cat(sprintf('Sampling gene set %d/%d: %s\n', i, total_gs, gs))
     sample_gs_matching_coexp(gs = gs, coexp_matrix = coexp_matrix, tol = tol, max_iter = max_iter, n_target = n_perm)
   })
   
@@ -112,7 +113,9 @@ sample_gs_matching_coexp <- function(gs, coexp_matrix, tol = 0.01, max_iter = 10
   sampled_gs <- list()
 
   for (i in 1:max_iter) {
-    print(sprintf('Iteration %d', i))
+    if (i %% 5000 == 0) {
+    cat(sprintf('Iteration %d \n', i))
+    }
     sampled_genes <- sample(colnames(coexp_matrix), length(gs), replace = FALSE)
     sampled_coexp_matrix <- coexp_matrix[sampled_genes, sampled_genes]
     sampled_coexp_lower <- sampled_coexp_matrix[lower.tri(sampled_coexp_matrix)]

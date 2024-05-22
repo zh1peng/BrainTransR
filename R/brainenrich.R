@@ -24,10 +24,10 @@ null_brain_data=generate_null_brain_data(brain_data, perm_id)
 geneList.null=corr_brain_gene(gene_data, null_brain_data, method = cor_method)
 
 } else if (null_model == 'resample_gene'){ 
-geneList.null=resample_geneList(geneList.true, n_perm)
+geneList.null=resample_gene(geneList.true, n_perm)
 
 } else if (null_model == 'coexp_matched'){ 
-geneList.null=resample_geneSetList_coexp_matched(gene_data, geneSetList.filtered, tol = 0.01, max_iter = 1000000, n_perm = n_perm)
+geneList.null=resample_gene_coexp_matched(gene_data, geneSetList.filtered, tol = 0.01, max_iter = 1000000, n_perm = n_perm)
 }
 
 gs_score.null=aggregate_geneSetList(geneSetList.filtered, geneList.null, method = aggre_method)
