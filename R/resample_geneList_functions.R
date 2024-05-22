@@ -36,7 +36,8 @@ resample_geneList <- function(geneList.true, n_perm = 5000) {
   colnames(geneList.null) <- paste0("null_", seq_len(n_perm))
 
   # Copy attributes from 'geneList.true' to 'geneList.null' to retain metadata, such as dimension names, class, or other user-defined attributes.
-  attributes(geneList.null) <- attributes(geneList.true)
+  attr(geneList.null,'is_fisherz') <- attr(geneList.true,'is_fisherz')
+  attr(geneList.null,'n.region') <- attr(geneList.true,'n.region')
 
   # Return the matrix of null permutations.
   return(geneList.null)
