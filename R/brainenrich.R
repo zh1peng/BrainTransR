@@ -15,8 +15,8 @@ brainenrich <-function( gene_data,
                         maxGSSize=200){
 
 geneList.true=corr_brain_gene(gene_data, brain_data, method = cor_method)                      
-geneSetList.filtered=filter_geneSetList(rownames(geneList.true), geneSetList, minGSSize=minGSSize,maxGSSize=maxGSSize)
-gs_score.true=aggregate_geneSetList(geneSetList.filtered, geneList.true, method = 'mean')
+selected.gs=filter_geneSetList(rownames(geneList.true), geneSetList, minGSSize=minGSSize,maxGSSize=maxGSSize)
+gs_score.true=aggregate_geneSetList(selected.gs, geneList.true, method = 'mean')
 
 if (null_model == 'spin_brain'){
 perm_id=rotate_parcellation(coord.l = coord.l, coord.r = coord.r, nrot = n_perm)
@@ -27,10 +27,10 @@ geneList.null=corr_brain_gene(gene_data, null_brain_data, method = cor_method)
 geneList.null=resample_gene(geneList.true, n_perm)
 
 } else if (null_model == 'coexp_matched'){ 
-geneList.null=resample_gene_coexp_matched(gene_data, geneSetList.filtered, tol = 0.01, max_iter = 1000000, n_perm = n_perm)
+geneList.null=resample_gene_coexp_matched(gene_data, selected.gs, tol = 0.01, max_iter = 1000000, n_perm = n_perm)
 }
 
-gs_score.null=aggregate_geneSetList(geneSetList.filtered, geneList.null, method = aggre_method)
+gs_score.null=aggregate_geneSetList(selected.gs, geneList.null, method = aggre_method)
 
 pvals=caculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
 

@@ -20,7 +20,19 @@ caculate_pvals <- function(statList.true, statList.null,method=c('standard','spl
   return(pvals)
 }
 
+calculate_qvalue <- function(pvals) {
+    if (length(pvals) == 0)
+        return(numeric(0))
 
+    qobj <- tryCatch(qvalue::qvalue(pvals, lambda=0.05, pi0.method="bootstrap"), error=function(e) NULL)
+
+    if (class(qobj) == "qvalue") {
+        qvalues <- qobj$qvalues
+    } else {
+        qvalues <- NA
+    }
+    return(qvalues)
+}
 
 
 cor2p <- function(r,n){
