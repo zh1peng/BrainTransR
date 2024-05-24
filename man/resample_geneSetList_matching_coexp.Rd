@@ -9,7 +9,8 @@ resample_geneSetList_matching_coexp(
   geneSetList,
   tol = 0.01,
   max_iter = 1e+06,
-  n_perm = 5000
+  n_perm = 5000,
+  n_cores = 1
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ resample_geneSetList_matching_coexp(
 \item{max_iter}{An integer indicating the maximum number of iterations for the sampling process (default = 1000000).}
 
 \item{n_perm}{An integer indicating the number of permutations to generate (default = 5000).}
+
+\item{n_cores}{An integer indicating the number of cores to use for parallel processing (default = 1).}
 }
 \value{
 A list of resampled gene sets based on the specified constraints.
@@ -35,9 +38,9 @@ with caution.
 }
 \examples{
 # Assuming gene_data and geneSetList are predefined:
-resampled_sets_coexp <- resample_geneSetList_coexp_matched(gene_data,
+resampled_sets_coexp <- resample_geneSetList_matching_coexp(gene_data,
                                      geneSetList = geneSetList, tol = 0.01,
-                                     max_iter = 1000000, n_perm = 5000)
+                                     max_iter = 1000000, n_perm = 5000, n_cores = 2)
 
 }
 \references{
