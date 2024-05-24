@@ -63,31 +63,58 @@ resample_gene <- function(geneList.true, n_perm = 5000) {
 #' @param tol A numeric value indicating the tolerance for matching co-expression patterns (default = 0.01).
 #' @param max_iter An integer indicating the maximum number of iterations for the sampling process (default = 1000000).
 #' @param n_perm An integer indicating the number of permutations to generate (default = 5000).
+#' @param n_cores An integer indicating the number of cores to use for parallel processing (default = 1).
 #' @return A list of resampled gene sets based on the specified constraints.
 #' @examples
 #' # Assuming gene_data and geneSetList are predefined:
-#' resampled_sets_coexp <- resample_geneSetList_coexp_matched(gene_data,
+#' resampled_sets_coexp <- resample_geneSetList_matching_coexp(gene_data,
 #'                                      geneSetList = geneSetList, tol = 0.01,
-#'                                      max_iter = 1000000, n_perm = 5000)
+#'                                      max_iter = 1000000, n_perm = 5000, n_cores = 2)
 #'
 #' @references
 #' Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
 #' Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.
 #' Human Brain Mapping, 43(3), 885–901. \url{https://doi.org/10.1002/hbm.25711}
-resample_geneSetList_matching_coexp <- function(gene_data, geneSetList, tol = 0.01, max_iter = 1000000, n_perm = 5000) {
+#' @importFrom pbapply pblapply
+#' @importFrom parallel makeCluster stopCluster clusterExport detectCores
+#' @export
+resample_geneSetList_matching_coexp <- function(gene_data, geneSetList, tol = 0.01, max_iter = 1000000, n_perm = 5000, n_cores = 1) {
+  # Load necessary packages
+  library(pbapply)
+  library(parallel)
+  
   # Calculate the co-expression matrix
   coexp_matrix <- cor(gene_data)
   total_gs <- length(geneSetList)
-  # Sample each gene set to match co-expression patterns
-  sampled_geneSetList <- lapply(seq_along(geneSetList), function(i) {
+  
+  # Determine the number of cores to use
+  if (n_cores == 0 || n_cores > detectCores() - 1) {
+    n_cores <- detectCores() - 1
+  }
+  
+  # Initialize a cluster of workers
+  cl <- makeCluster(n_cores)
+  
+  # Export necessary variables and functions to the cluster
+  clusterExport(cl, c("geneSetList", "coexp_matrix", "tol", "max_iter", 
+                        "n_perm", "sample_gs_matching_coexp","total_gs"), 
+              envir = environment())
+  
+  # Parallelize the processing using pblapply for progress bar
+  sampled_geneSetList <- pblapply(seq_along(geneSetList), function(i) {
     gs <- geneSetList[[i]]
-    cat(sprintf('Sampling gene set %d/%d: %s (gs size: %d) \n', i, total_gs, names(geneSetList)[i],length(gs)))
+    cat(sprintf('Sampling gene set %d/%d: %s (gs size: %d) \n', i, total_gs, names(geneSetList)[i], length(gs)))
     sample_gs_matching_coexp(gs = gs, coexp_matrix = coexp_matrix, tol = tol, max_iter = max_iter, n_target = n_perm)
-  })
+  }, cl = cl)
+  
+  # Stop the cluster after processing
+  stopCluster(cl)
+  
   names(sampled_geneSetList) <- names(geneSetList)
   
   return(sampled_geneSetList)
 }
+
 
 
 
@@ -169,7 +196,6 @@ sample_gs_matching_coexp <- function(gs, coexp_matrix, tol = 0.01, max_iter = 10
 #' orig_gs <- c("a", "b", "c")
 #' sampled_gs <- list(c("d", "e", "f"), c("g", "h", "i"))
 #' swap_geneList(geneList.true, orig_gs, sampled_gs)
-#' @export
 swap_geneList <- function(geneList.true, orig_gs, sampled_gs) {
   # Check if geneList.true is a matrix with one column
   if (!is.matrix(geneList.true) || ncol(geneList.true) != 1) {
