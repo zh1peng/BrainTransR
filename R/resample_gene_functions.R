@@ -79,6 +79,11 @@ resample_gene <- function(geneList.true, n_perm = 5000) {
 #' @importFrom parallel makeCluster stopCluster clusterExport detectCores
 #' @export
 resample_geneSetList_matching_coexp <- function(gene_data, geneSetList, tol = 0.01, max_iter = 1000000, n_perm = 5000, n_cores = 1) {
+  
+  if (!ask_user_continue('Resampling gene sets may take a long time.')) {
+    cat("Operation aborted by the user.\n")
+    return(NULL)
+  }
   # Load necessary packages
   library(pbapply)
   library(parallel)
@@ -140,10 +145,7 @@ resample_geneSetList_matching_coexp <- function(gene_data, geneSetList, tol = 0.
 sample_gs_matching_coexp <- function(gs, coexp_matrix, tol = 0.01, max_iter = 1000000, n_target = 5000) {
   # Calculate the mean co-expression value for the lower triangle of the co-expression matrix of the target gene set
   
-  if (!ask_user_continue('Resampling gene sets may take a long time.')) {
-    cat("Operation aborted by the user.\n")
-    return(NULL)
-  }
+
 
   gs_coexp_matrix <- coexp_matrix[gs, gs]
   gs_coexp_lower <- gs_coexp_matrix[lower.tri(gs_coexp_matrix)]

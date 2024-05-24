@@ -6,7 +6,9 @@ brain_data=get_brainExample(type='PC1') %>%
 gene_data=get_geneExp(atlas = 'desikan', rdonor = 'r0.6', hem = 'L')
 
 geneList.true=corr_brain_gene(gene_data, brain_data, method = 'pearson')  
-geneSetList=get_geneSetList(type='CellType',parameter = 'Seidlitz2020')
+annoData=get_annoData(type='CellType',parameter = 'Seidlitz2020')
+geneSetList=get_geneSetList(annoData)
+
 
 selected.gs=filter_geneSetList(rownames(geneList.true), geneSetList, 20, 200)
 gs_score.true=aggregate_geneSetList(geneList.true,selected.gs, n_cores = 0, prefix=NULL,  method = 'mean')
@@ -14,12 +16,12 @@ gs_score.true=aggregate_geneSetList(geneList.true,selected.gs, n_cores = 0, pref
 # resample gene
 geneList.null=resample_gene(geneList.true, 1000)
 gs_score.null=aggregate_geneSetList(geneList.null, selected.gs, method = 'mean')
-pvals=caculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
+pvals=calculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
 
 # resample geneSetList matching coexpression
-sampled_gs=resample_geneSetList_matching_coexp(gene_data, selected.gs, tol = 0.1, max_iter = 1000000, n_perm = 5)
+sampled_gs=resample_geneSetList_matching_coexp(gene_data, selected.gs, tol = 0.1, max_iter = 1000000, n_perm = 100)
 gs_score.null=aggregate_geneSetList_matching_coexp(geneList.true,selected.gs,sampled_gs, method = 'mean')
-pvals=caculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
+pvals=calculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
 
 # spin brain provide coord.l
 perm_id=rotate_parcellation(coord.l = , nrot = 1000)
@@ -32,7 +34,7 @@ pvals.adj <- p.adjust(pvals, method='fdr')
 qvalues <- calculate_qvalue(unlist(pvals))
 # prepare results for group level
 
-# prepare results for indivdual level
+
 
 
 gs.name=names(selected.gs)
