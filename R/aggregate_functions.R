@@ -220,50 +220,81 @@ aggregate_geneSet <- function(geneList, # named correlation/coefficient matrix
 
 
 
-#' Aggregate Gene Set List
+#' Aggregate Gene Set List in Parallel
 #'
-#' This function aggregates multiple gene sets of interest after filtering, using a provided gene list.
+#' This function aggregates gene sets in parallel using the `parLapply` function
+#' from the `parallel` package, ensuring cross-platform compatibility.
 #'
-#' @param geneSetList A list of multiple gene sets of interest after filtering.
-#' @param geneList A list of genes, which can be either a true gene list or a null gene list.
-#' @param ... Additional arguments passed to the `aggregate_geneSet` function.
-#'
-#' @return A list of aggregated scores for each gene set.
+#' @param geneList A list of genes.
+#' @param geneSetList A list of gene sets to be aggregated.
+#' @param n_cores Number of cores to use for parallel processing. Default is 1. 
+#' If set to 0, it uses all available cores minus one.
+#' @param prefix Optional prefix to add to the names of the resulting list.
+#' @param ... Additional arguments to be passed to the `aggregate_geneSet` function.
+#' @return A list of aggregated gene set scores.
+#' @import pbapply
+#' @import parallel
 #' @export
-#'
-#' @examples
-
-aggregate_geneSetList <- function(geneList, geneSetList,  ...) {
-  allgs.scores <- lapply(geneSetList, function(gs) {
-    aggregate_geneSet(geneList = geneList, geneSet = gs, ...)
-  })
+aggregate_geneSetList <- function(geneList, geneSetList, method, n_cores = 1, prefix = NULL) {
+  
+  # Load necessary packages
+  library(pbapply)
+  library(parallel)
+  # Determine the number of cores to use
+  if (n_cores == 0 | n_cores > detectCores() - 1) {
+    n_cores <- detectCores() - 1
+  }
+  
+  # Initialize a cluster of workers
+  cl <- makeCluster(n_cores)
+  
+  # Export necessary variables to the cluster
+  clusterExport(cl, c("geneList", "aggregate_geneSet", "geneSetList", "method"),
+                        envir=environment())
+  
+  # Parallelize the processing using pblapply for progress bar
+  allgs.scores <- pblapply(seq_along(geneSetList), function(i) {
+    gs <- geneSetList[[i]]
+    aggregate_geneSet(geneList = geneList, geneSet = gs, method=method)
+  }, cl = cl)
+  
+  # Stop the cluster after processing
+  stopCluster(cl)
+  
+  # Add prefix to names if specified
+  if (!is.null(prefix)){
+    prefix=""
+  }
+  names(allgs.scores) <- paste0(prefix, names(geneSetList))
   return(allgs.scores)
 }
 
 
 
-#' Aggregate Gene Set List Matching Co-Expression
+
+#' Aggregate Gene Set List with Matching Coexpression in Parallel
 #'
-#' This function aggregates scores for multiple gene sets of interest, using a true gene list and sampled gene sets
-#' while ensuring matching co-expression patterns.
+#' This function aggregates gene set scores in parallel using `pblapply` from the `pbapply` package.
 #'
-#' @param geneSetList A list of gene sets of interest after filtering.
+#' @param geneList.true A m x 1 matrix of true gene sets. Ensure to include `drop=FALSE` when subsetting.
+#' @param geneSetList A list of gene sets.
 #' @param sampled_geneSetList A list of sampled gene sets.
-#' @param geneList.true A matrix representing the true gene list, with dimensions m x 1.
-#' @param method method passed to `aggregate_geneSet`.
-#' @return A list of aggregated scores for each gene set.
-#' @examples
-#' # Example usage with dummy data
-#' geneList.true <- matrix(1:10, ncol = 1)
-#' rownames(geneList.true) <- letters[1:10]
-#' geneSetList <- list(set1 = c("a", "b", "c"), set2 = c("d", "e", "f"))
-#' sampled_geneSetList <- list(set1 = list(c("g", "h", "i")), set2 = list(c("j", "k", "l")))
-#' aggregate_geneSetList_matching_coexp(geneSetList, sampled_geneSetList, geneList.true)
+#' @param method The method to be used for aggregation.
+#' @param n_cores Number of cores to use for parallel processing. Default is 1. 
+#' If set to 0, it uses all available cores minus one.
+#' @return A list of aggregated gene set scores.
+#' @import parallel
+#' @import pbapply
 #' @export
 aggregate_geneSetList_matching_coexp <- function(geneList.true, 
                                                  geneSetList, 
                                                  sampled_geneSetList, 
-                                                 method) {
+                                                 method,
+                                                 n_cores = 1) {
+  # Load necessary packages
+  library(parallel)
+  library(pbapply)
+  
   # Ensure geneList.true is a matrix with one column
   if (!is.matrix(geneList.true) || ncol(geneList.true) != 1) {
     stop('geneList.true should be a m x 1 matrix. Please include drop=FALSE when subsetting.')
@@ -274,16 +305,34 @@ aggregate_geneSetList_matching_coexp <- function(geneList.true,
     stop('geneSetList and sampled_geneSetList are not matched.')
   }
   
-  # Aggregate scores using mapply for parallel processing
-  allgs.scores <- mapply(function(gs, sampled_gs) {
+  # Determine the number of cores to use
+  if (n_cores == 0 | n_cores > detectCores() - 1){
+    n_cores <- detectCores() - 1
+  }
+
+  
+  # Initialize a cluster of workers
+  cl <- makeCluster(n_cores)
+  
+  # Export necessary variables and functions to the cluster
+  clusterExport(cl, varlist = c("geneList.true", "swap_geneList", "aggregate_geneSet", "method", "geneSetList", "sampled_geneSetList"),
+                envir = environment())
+  
+  # Parallelize the processing using pblapply for progress bar
+  allgs.scores <- pblapply(seq_along(geneSetList), function(i) {
+    gs <- geneSetList[[i]]
+    sampled_gs <- sampled_geneSetList[[i]]
     geneList.null <- swap_geneList(geneList.true = geneList.true,
                                    orig_gs = gs,
                                    sampled_gs = sampled_gs)
     gs.score <- aggregate_geneSet(geneList = geneList.null,
                                   geneSet = gs,
-                                  method=method)
+                                  method = method)
     return(gs.score)
-  }, geneSetList, sampled_geneSetList, SIMPLIFY = FALSE)
+  }, cl = cl)
   
+  # Stop the cluster after processing
+  stopCluster(cl)
+  names(allgs.scores) <- names(geneSetList)
   return(allgs.scores)
 }

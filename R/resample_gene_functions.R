@@ -112,6 +112,12 @@ resample_geneSetList_matching_coexp <- function(gene_data, geneSetList, tol = 0.
 #' similar_gene_sets <- sample_gs_matching_coexp(target_gene_set, coexp_matrix)
 sample_gs_matching_coexp <- function(gs, coexp_matrix, tol = 0.01, max_iter = 1000000, n_target = 5000) {
   # Calculate the mean co-expression value for the lower triangle of the co-expression matrix of the target gene set
+  
+  if (!ask_user_continue('Resampling gene sets may take a long time.')) {
+    cat("Operation aborted by the user.\n")
+    return(NULL)
+  }
+
   gs_coexp_matrix <- coexp_matrix[gs, gs]
   gs_coexp_lower <- gs_coexp_matrix[lower.tri(gs_coexp_matrix)]
   target_coexp <- mean(gs_coexp_lower)

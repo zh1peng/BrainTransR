@@ -9,7 +9,7 @@ geneList.true=corr_brain_gene(gene_data, brain_data, method = 'pearson')
 geneSetList=get_geneSetList(type='CellType',parameter = 'Seidlitz2020')
 
 selected.gs=filter_geneSetList(rownames(geneList.true), geneSetList, 20, 200)
-gs_score.true=aggregate_geneSetList(geneList.true,selected.gs,  method = 'mean')
+gs_score.true=aggregate_geneSetList(geneList.true,selected.gs, n_cores = 0, prefix=NULL,  method = 'mean')
 
 # resample gene
 geneList.null=resample_gene(geneList.true, 1000)

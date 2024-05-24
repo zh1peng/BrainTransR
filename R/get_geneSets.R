@@ -119,54 +119,66 @@ get_geneSetList <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', '
 #'
 #' @export
 get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_download_release_20231201.zip") {
-  # Create temporary file and directory
-  zip_path <- tempfile(fileext = ".zip")
-  temp_dir <- tempdir()
-  extracted_file <- file.path(temp_dir, "syngo_ontologies.xlsx")
+  # Define local file paths
+  local_dir <- file.path(system.file(package = "BrainEnrich"), "extdata", "geneSet")
+  if (!dir.exists(local_dir)) dir.create(local_dir, recursive = TRUE)
+  local_file <- file.path(local_dir, "syngo_ontologies.xlsx")
 
-  # Clean-up function to ensure temp files are removed
-  on.exit({
-    if (file.exists(zip_path)) unlink(zip_path)
-    if (file.exists(extracted_file)) unlink(extracted_file)
-  }, add = TRUE)
+  # Check if the file exists locally
+  if (file.exists(local_file)) {
+    message("Using local file for SynGO data.")
+    extracted_file <- local_file
+  } else {
+    # Create temporary file and directory
+    zip_path <- tempfile(fileext = ".zip")
+    temp_dir <- tempdir()
+    extracted_file <- file.path(temp_dir, "syngo_ontologies.xlsx")
+  
+    # Clean-up function to ensure temp files are removed
+    on.exit({
+      if (file.exists(zip_path)) unlink(zip_path)
+      if (file.exists(extracted_file)) unlink(extracted_file)
+    }, add = TRUE)
+  
+    tryCatch({
+      # Download the file
+      message("Downloading SynGO data...")
+      download.file(url, zip_path, mode = "wb")
+  
+      # Unzip the required file
+      message("Unzipping SynGO data...")
+      unzip(zip_path, files = "syngo_ontologies.xlsx", exdir = temp_dir)
+  
+      # Move the extracted file to the local directory for future use
+      file.copy(extracted_file, local_file)
+      extracted_file <- local_file
+  
+    }, error = function(e) {
+      stop("An error occurred while processing SynGO data: ", e$message)
+    })
+  }
 
-  tryCatch({
-    # Download the file
-    message("Downloading SynGO data...")
-    download.file(url, zip_path, mode = "wb")
+  # Read the data from the extracted file
+  data <- read_xlsx(extracted_file)
 
-    # Unzip the required file
-    message("Unzipping SynGO data...")
-    unzip(zip_path, files = "syngo_ontologies.xlsx", exdir = temp_dir)
+  # Process TERM2GENE
+  TERM2GENE <- data %>%
+    select(id, hgnc_symbol) %>%
+    rename(term = id, gene = hgnc_symbol) %>%
+    mutate(gene = strsplit(gene, ";")) %>%
+    unnest(cols = c(gene))
 
-    # Read the data from the extracted file
-    if (!file.exists(extracted_file)) {
-      stop("Failed to extract the required file.")
-    }
+  # Process TERM2NAME
+  TERM2NAME <- data %>%
+    select(id, name) %>%
+    rename(term = id, description = name)
 
-    data <- read_xlsx(extracted_file)
+  build_Anno <- getFromNamespace("build_Anno", "DOSE")
+  # Use build_Anno function from DOSE package
+  USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
 
-    # Process TERM2GENE
-    TERM2GENE <- data %>%
-      select(id, hgnc_symbol) %>%
-      rename(term = id,gene=hgnc_symbol) %>%
-      mutate(gene = strsplit(gene, ";")) %>%
-      unnest(cols = c(gene))
-
-    # Process TERM2NAME
-    TERM2NAME <- data %>%
-      select(id, name) %>%
-      rename(term = id, description = name)
-
-    build_Anno=getFromNamespace("build_Anno", "DOSE")
-    # Use build_Anno function from DOSE package
-    USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
-
-    message("SynGO data has been processed and temporary files removed.")
-    return(USER_DATA)
-  }, error = function(e) {
-    stop("An error occurred while processing SynGO data: ", e$message)
-  })
+  message("SynGO data has been processed.")
+  return(USER_DATA)
 }
 
 #' Download and process cell type gene set data
@@ -219,43 +231,55 @@ get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021'
     Martins2021 = "https://github.com/molecular-neuroimaging/Imaging_Transcriptomics/raw/main/imaging_transcriptomics/data/geneset_Pooled.gmt"
   )
 
-  # Create temporary file
-  temp_file <- tempfile()
-  
-  # Clean-up function to ensure temp files are removed
-  on.exit({
-    if (file.exists(temp_file)) unlink(temp_file)
-  }, add = TRUE)
-  
-  # Download the file
-  message("Downloading cell type data...")
-  download.file(urls[[type]], temp_file, mode = "wb")
+  # Define local file paths
+  local_dir <- file.path(system.file(package = "BrainEnrich"), "extdata", "geneSet")
+  if (!dir.exists(local_dir)) dir.create(local_dir, recursive = TRUE)
+  local_files <- list(
+    Seidlitz2020 = file.path(local_dir, "celltypes_PSP.csv"),
+    Lake2018 = file.path(local_dir, "geneset_LAKE.gmt"),
+    Martins2021 = file.path(local_dir, "geneset_Pooled.gmt")
+  )
+
+  # Check if the file exists locally
+  if (file.exists(local_files[[type]])) {
+    message("Using local file for ", type)
+    temp_file <- local_files[[type]]
+  } else {
+    message("Downloading cell type data for ", type, "...")
+    temp_file <- tempfile()
+    download.file(urls[[type]], temp_file, mode = "wb")
+    
+    # Save the downloaded file locally for future use
+    file.copy(temp_file, local_files[[type]])
+  }
 
   tryCatch({
     if (type == 'Seidlitz2020') {
       # Read CSV file
       TERM2GENE <- read.csv(temp_file) %>% 
-              mutate(term=class) %>% 
-              filter(!gene == '') %>% 
-              select(term, gene)
+        mutate(term = class) %>% 
+        filter(gene != '') %>% 
+        select(term, gene)
       TERM2NAME <- TERM2GENE %>% 
-                    mutate(description=term) %>% 
-                    select(term, description)
-  
+        mutate(description = term) %>% 
+        select(term, description)
     } else {
       # Read GMT file
-      TERM2GENE <- suppressWarnings({read.gmt(temp_file) %>% 
-                    filter(!gene == '') %>%
-                    select(term, gene)})
-      TERM2NAME <- TERM2GENE %>% mutate(description=term) %>% select(term, description)
+      TERM2GENE <- suppressWarnings({
+        read.gmt(temp_file) %>% 
+          filter(gene != '') %>% 
+          select(term, gene)
+      })
+      TERM2NAME <- TERM2GENE %>% 
+        mutate(description = term) %>% 
+        select(term, description)
     }
 
-    build_Anno=getFromNamespace("build_Anno", "DOSE")
+    build_Anno <- getFromNamespace("build_Anno", "DOSE")
     # Create gene set list
     USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
 
-
-    message("Cell type data has been processed and temporary files removed.")
+    message("Cell type data has been processed.")
     return(USER_DATA)
   }, error = function(e) {
     stop("An error occurred while processing cell type data: ", e$message)

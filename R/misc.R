@@ -40,3 +40,19 @@ cor2p <- function(r,n){
   p <- 2*(1 - pt(abs(t),(n-2)))
   return(p)
 }
+
+
+
+ask_user_continue <- function(msg) {
+  repeat {
+    user_input <- readline(prompt = sprintf("%. Do you want to continue? (Y/N): ", msg))
+    
+    if (toupper(user_input) == "Y") {
+      return(TRUE)
+    } else if (toupper(user_input) == "N") {
+      return(FALSE)
+    } else {
+      cat("Invalid input. Please enter 'Y' for Yes or 'N' for No.\n")
+    }
+  }
+}
