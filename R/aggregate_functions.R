@@ -235,7 +235,7 @@ aggregate_geneSet <- function(geneList, # named correlation/coefficient matrix
 #' @import pbapply
 #' @import parallel
 #' @export
-aggregate_geneSetList <- function(geneList, geneSetList, method, n_cores = 1, prefix = NULL) {
+aggregate_geneSetList <- function(geneList, geneSetList, aggre_method, n_cores = 1, prefix = NULL) {
   
   # Load necessary packages
   library(pbapply)
@@ -249,20 +249,20 @@ aggregate_geneSetList <- function(geneList, geneSetList, method, n_cores = 1, pr
   cl <- makeCluster(n_cores)
   
   # Export necessary variables to the cluster
-  clusterExport(cl, c("geneList", "aggregate_geneSet", "geneSetList", "method"),
+  clusterExport(cl, c("geneList", "aggregate_geneSet", "geneSetList", "aggre_method"),
                         envir=environment())
   
   # Parallelize the processing using pblapply for progress bar
   allgs.scores <- pblapply(seq_along(geneSetList), function(i) {
     gs <- geneSetList[[i]]
-    aggregate_geneSet(geneList = geneList, geneSet = gs, method=method)
+    aggregate_geneSet(geneList = geneList, geneSet = gs, method=aggre_method)
   }, cl = cl)
   
   # Stop the cluster after processing
   stopCluster(cl)
   
   # Add prefix to names if specified
-  if (!is.null(prefix)){
+  if (is.null(prefix)|!is.character(prefix)){
     prefix=""
   }
   names(allgs.scores) <- paste0(prefix, names(geneSetList))
@@ -289,7 +289,7 @@ aggregate_geneSetList <- function(geneList, geneSetList, method, n_cores = 1, pr
 aggregate_geneSetList_matching_coexp <- function(geneList.true, 
                                                  geneSetList, 
                                                  sampled_geneSetList, 
-                                                 method,
+                                                 aggre_method,
                                                  n_cores = 1) {
   # Load necessary packages
   library(parallel)
@@ -315,7 +315,7 @@ aggregate_geneSetList_matching_coexp <- function(geneList.true,
   cl <- makeCluster(n_cores)
   
   # Export necessary variables and functions to the cluster
-  clusterExport(cl, varlist = c("geneList.true", "swap_geneList", "aggregate_geneSet", "method", "geneSetList", "sampled_geneSetList"),
+  clusterExport(cl, varlist = c("geneList.true", "swap_geneList", "aggregate_geneSet", "aggre_method", "geneSetList", "sampled_geneSetList"),
                 envir = environment())
   
   # Parallelize the processing using pblapply for progress bar
@@ -327,7 +327,7 @@ aggregate_geneSetList_matching_coexp <- function(geneList.true,
                                    sampled_gs = sampled_gs)
     gs.score <- aggregate_geneSet(geneList = geneList.null,
                                   geneSet = gs,
-                                  method = method)
+                                  method = aggre_method)
     return(gs.score)
   }, cl = cl)
   

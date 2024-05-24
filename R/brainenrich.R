@@ -34,7 +34,6 @@ gs_score.null=aggregate_geneSetList(selected.gs, geneList.null, method = aggre_m
 
 pvals=caculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
 
-
 }
 
 

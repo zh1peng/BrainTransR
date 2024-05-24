@@ -2,34 +2,19 @@
 % Please edit documentation in R/get_geneSets.R
 \name{get_geneSetList}
 \alias{get_geneSetList}
-\title{Get Gene Set List based on type and parameters}
+\title{Get Gene Set List}
 \usage{
-get_geneSetList(
-  type = c("GO", "KEGG", "WikiPathways", "Reactome", "SynGO", "CellType"),
-  parameter = NULL
-)
+get_geneSetList(annoData, convert_to_symbol = FALSE)
 }
 \arguments{
-\item{type}{The type of gene set data to retrieve. Must be one of 'GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'.}
+\item{annoData}{Annotation data to retrieve gene sets from.}
 
-\item{parameter}{Additional parameter for specific types like 'GO' and 'CellType'. For 'GO', use 'BP', 'MF', or 'CC'. For 'CellType', use 'Seidlitz2020', 'Lake2018', or 'Martins2021'.}
+\item{convert_to_symbol}{Logical; if TRUE, converts gene identifiers to gene symbols.}
 }
 \value{
-A list of gene sets where each element is a vector of genes associated with a specific term.
+A list of gene sets.
 }
 \description{
-This function retrieves a gene set list based on the specified type and additional parameters.
-}
-\details{
-The function supports various types of gene sets, including 'GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', and 'CellType'.
-For 'GO', the additional parameter can be 'BP', 'MF', or 'CC'.
-For 'CellType', the additional parameter can be 'Seidlitz2020', 'Lake2018', or 'Martins2021'.
-}
-\examples{
-\dontrun{
-# Example usage of get_geneSetList function
-geneSetList <- get_geneSetList('GO', 'BP')
-print(geneSetList)
-}
-
+This function retrieves a gene set list from annotation data. It optionally converts
+gene identifiers to gene symbols.
 }

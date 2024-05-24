@@ -1,4 +1,4 @@
-#' Get Gene Set List based on type and parameters
+#' Get Gene Set List based on Type and Parameters
 #'
 #' This function retrieves a gene set list based on the specified type and additional parameters.
 #'
@@ -10,58 +10,77 @@
 #' @param type The type of gene set data to retrieve. Must be one of 'GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'.
 #' @param parameter Additional parameter for specific types like 'GO' and 'CellType'. For 'GO', use 'BP', 'MF', or 'CC'. For 'CellType', use 'Seidlitz2020', 'Lake2018', or 'Martins2021'.
 #' @return A list of gene sets where each element is a vector of genes associated with a specific term.
+#' @import DOSE
+#' @improt clusterProfiler
+#' @import ReactomePA
 #' @examples
 #' \dontrun{
-#' # Example usage of get_geneSetList function
-#' geneSetList <- get_geneSetList('GO', 'BP')
+#' # Example usage of get_annoData function
+#' geneSetList <- get_annoData('GO', 'BP')
 #' print(geneSetList)
 #' }
-#'
 #' @export
-get_geneSetList <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'),
-                            parameter = NULL) {
+get_annoData <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'),
+                         parameter = NULL) {
   type <- match.arg(type)
   
   # Main processing based on type
   annoData <- NULL
-  convert_to_symbol <- FALSE
   
   if (type == 'GO') {
     if (is.null(parameter) || !parameter %in% c('BP', 'MF', 'CC')) {
       stop("For type 'GO', parameter must be one of 'BP', 'MF', or 'CC'.")
     }
-    get_GO_data=getFromNamespace('get_GO_data','clusterProfiler')
-    annoData <- get_GO_data('org.Hs.eg.db', ont = parameter, 'SYMBOL')
+    get_GO_data <- getFromNamespace('get_GO_data', 'clusterProfiler')
+    annoData <- get_GO_data('org.Hs.eg.db', ont = parameter, keytype = 'SYMBOL')
+    
   } else if (type == 'DisGeNet') {
-    get_DGN_data=getFromNamespace('get_DGN_data','DOSE')
+    get_DGN_data <- getFromNamespace('get_DGN_data', 'DOSE')
     annoData <- get_DGN_data()
-    convert_to_symbol <- TRUE
+    
   } else if (type == 'KEGG') {
-    prepare_KEGG=getFromNamespace('prepare_KEGG','clusterProfiler')
+    prepare_KEGG <- getFromNamespace('prepare_KEGG', 'clusterProfiler')
     annoData <- prepare_KEGG('hsa', 'MKEGG', 'kegg')
-    convert_to_symbol <- TRUE
+    
   } else if (type == 'WikiPathways') {
-    prepare_WP_data=getFromNamespace('prepare_WP_data','clusterProfiler')
+    prepare_WP_data <- getFromNamespace('prepare_WP_data', 'clusterProfiler')
     wpdata <- prepare_WP_data('Homo sapiens')
     TERM2GENE <- wpdata$WPID2GENE
     TERM2NAME <- wpdata$WPID2NAME
-    build_Anno=getFromNamespace("build_Anno", "DOSE")
+    build_Anno <- getFromNamespace("build_Anno", "DOSE")
     annoData <- build_Anno(TERM2GENE, TERM2NAME)
-    convert_to_symbol <- TRUE
+    
   } else if (type == 'Reactome') {
-    get_Reactome_DATA=getFromNamespace('get_Reactome_DATA','ReactomePA')
+    get_Reactome_DATA <- getFromNamespace('get_Reactome_DATA', 'ReactomePA')
     annoData <- get_Reactome_DATA('human')
-    convert_to_symbol <- TRUE
+    
   } else if (type == 'CellType') {
     if (is.null(parameter) || !parameter %in% c('Seidlitz2020', 'Lake2018', 'Martins2021')) {
       stop("For type 'CellType', parameter must be one of 'Seidlitz2020', 'Lake2018', or 'Martins2021'.")
     }
     annoData <- get_celltype_data(parameter)
-  } else if (type=='SynGO'){
+    
+  } else if (type == 'SynGO') {
     annoData <- get_SynGO_data()
   }
+  
+  return(annoData)
+}
 
-  getGeneSet=getFromNamespace('getGeneSet','DOSE')
+
+#' Get Gene Set List
+#'
+#' This function retrieves a gene set list from annotation data. It optionally converts
+#' gene identifiers to gene symbols.
+#'
+#' @param annoData Annotation data to retrieve gene sets from.
+#' @param convert_to_symbol Logical; if TRUE, converts gene identifiers to gene symbols.
+#' @return A list of gene sets.
+#' @import DOSE
+#' @export
+get_geneSetList <- function(annoData, convert_to_symbol = FALSE) {
+  getGeneSet <- getFromNamespace('getGeneSet', 'DOSE')
+  
   geneSetList <- getGeneSet(annoData)
   
   if (length(geneSetList) > 10000) {
@@ -75,14 +94,6 @@ get_geneSetList <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', '
   return(geneSetList)
 }
 
-
-# # From BioC 3.14 (Nov. 2021, with R-4.2.0)
-# library(AnnotationHub)
-# library(MeSHDbi)
-# ah <- AnnotationHub(localHub=TRUE)
-# hsa <- query(ah, c("MeSHDb", "Homo sapiens"))
-# file_hsa <- hsa[[1]]
-# db <- MeSHDbi::MeSHDb(file_hsa)
 
 
 

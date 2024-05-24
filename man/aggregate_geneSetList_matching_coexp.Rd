@@ -8,7 +8,7 @@ aggregate_geneSetList_matching_coexp(
   geneList.true,
   geneSetList,
   sampled_geneSetList,
-  method,
+  aggre_method,
   n_cores = 1
 )
 }
@@ -19,10 +19,10 @@ aggregate_geneSetList_matching_coexp(
 
 \item{sampled_geneSetList}{A list of sampled gene sets.}
 
-\item{method}{The method to be used for aggregation.}
-
 \item{n_cores}{Number of cores to use for parallel processing. Default is 1.
 If set to 0, it uses all available cores minus one.}
+
+\item{method}{The method to be used for aggregation.}
 }
 \value{
 A list of aggregated gene set scores.
