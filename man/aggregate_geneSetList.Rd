@@ -7,7 +7,7 @@
 aggregate_geneSetList(
   geneList,
   geneSetList,
-  aggre_method,
+  method,
   n_cores = 1,
   prefix = NULL
 )

@@ -22,7 +22,7 @@
 #' }
 #' @importFrom stats cor
 #' @export
-brainscore <- function(brain_df, 
+brainscore <- function(brain_data, 
                        gene_data, 
                        geneSetList,
                        cor_method = c('pearson', 'spearman', 'pls1c', 'pls1w', 'custom'),
@@ -33,8 +33,6 @@ brainscore <- function(brain_df,
 
   cor_method <- match.arg(cor_method)
   aggre_method <- match.arg(aggre_method)
-
-  brain_data <- t(brain_df)
   geneList <- corr_brain_gene(gene_data, brain_data, method = cor_method)  
   gs.score <- aggregate_geneSetList(geneList, geneSetList, method = aggre_method, prefix = prefix)
   df.score <- data.frame(gs.score)

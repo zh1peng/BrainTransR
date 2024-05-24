@@ -12,16 +12,16 @@ rotate_parcellation(
 )
 }
 \arguments{
-\item{coord.l}{Coordinates of left hemisphere regions on the sphere (array of size \link{n(LH regions) x 3}). Can be NULL if only right hemisphere is used.}
+\item{coord.l}{Coordinates of left hemisphere regions on the sphere (array of size n(LH regions) x 3). Can be NULL if only right hemisphere is used.}
 
-\item{coord.r}{Coordinates of right hemisphere regions on the sphere (array of size \link{n(RH regions) x 3}). Can be NULL if only left hemisphere is used.}
+\item{coord.r}{Coordinates of right hemisphere regions on the sphere (array of size n(RH regions) x 3). Can be NULL if only left hemisphere is used.}
 
 \item{nrot}{Number of rotations (default = 10000).}
 
 \item{method}{Method to match rotated and unrotated regions; options are 'vasa' (faster, can be suboptimal) or 'hungarian' (default, slower, optimal).}
 }
 \value{
-Array of permutations, from set of regions to itself (array of size \link{n(total regions) x nrot}).
+Array of permutations, from set of regions to itself (array of size n(total regions) x nrot).
 }
 \description{
 Generate a permutation map from a set of cortical regions of interest to itself,

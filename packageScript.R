@@ -21,6 +21,7 @@ devtools::document()
 devtools::build()
 devtools::install()
 usethis::use_mit_license()
+usethis::use_citation()
 
 usethis::use_testthat() # Create testthat infrastructure
 usethis::use_test('corr_brain_gene') # Create test file for corr_brain_gene function

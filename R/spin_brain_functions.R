@@ -59,11 +59,11 @@ generate_null_brain_data <- function(brain_data, perm_id) {
 #' - Included importFrom directives for required functions from `matrixStats` and `clue`.
 #' - Ensured the function generates `nrot + 100` permutations, removes duplicates, and returns exactly `nrot` unique permutations.
 
-#' @param coord.l Coordinates of left hemisphere regions on the sphere (array of size [n(LH regions) x 3]). Can be NULL if only right hemisphere is used.
-#' @param coord.r Coordinates of right hemisphere regions on the sphere (array of size [n(RH regions) x 3]). Can be NULL if only left hemisphere is used.
+#' @param coord.l Coordinates of left hemisphere regions on the sphere (array of size n(LH regions) x 3). Can be NULL if only right hemisphere is used.
+#' @param coord.r Coordinates of right hemisphere regions on the sphere (array of size n(RH regions) x 3). Can be NULL if only left hemisphere is used.
 #' @param nrot Number of rotations (default = 10000).
 #' @param method Method to match rotated and unrotated regions; options are 'vasa' (faster, can be suboptimal) or 'hungarian' (default, slower, optimal).
-#' @return Array of permutations, from set of regions to itself (array of size [n(total regions) x nrot]).
+#' @return Array of permutations, from set of regions to itself (array of size n(total regions) x nrot).
 #' @importFrom matrixStats rowMins
 #' @importFrom clue solve_LSAP
 #' @export

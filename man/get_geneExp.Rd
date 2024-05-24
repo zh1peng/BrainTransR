@@ -7,7 +7,7 @@
 get_geneExp(
   atlas = c("desikan", "schaefer100", "schaefer200", "schaefer300"),
   rdonor = c("r0.2", "r0.4", "r0.6"),
-  hem = c("L")
+  hem = c("L", "R", "B")
 )
 }
 \arguments{

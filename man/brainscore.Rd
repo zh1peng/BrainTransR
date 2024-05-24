@@ -5,7 +5,7 @@
 \title{Calculate Brain Scores}
 \usage{
 brainscore(
-  brain_df,
+  brain_data,
   gene_data,
   geneSetList,
   cor_method = c("pearson", "spearman", "pls1c", "pls1w", "custom"),
@@ -15,8 +15,6 @@ brainscore(
 )
 }
 \arguments{
-\item{brain_df}{Data frame with subjects as rows and brain regions as columns.}
-
 \item{gene_data}{Data frame with brain regions as rows and genes as columns.}
 
 \item{geneSetList}{A list of gene sets to aggregate scores for.}
@@ -27,6 +25,8 @@ brainscore(
 "maxmean", "ks_orig", "ks_weighted", "ks_pos_neg_sum", "local_fdr", "sign_test", "rank_sum", or "custom".}
 
 \item{prefix}{Optional character string to prefix the names of the aggregated scores.}
+
+\item{brain_df}{Data frame with subjects as rows and brain regions as columns.}
 }
 \value{
 A data frame with aggregated gene set scores.

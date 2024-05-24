@@ -235,7 +235,7 @@ aggregate_geneSet <- function(geneList, # named correlation/coefficient matrix
 #' @import pbapply
 #' @import parallel
 #' @export
-aggregate_geneSetList <- function(geneList, geneSetList, aggre_method, n_cores = 1, prefix = NULL) {
+aggregate_geneSetList <- function(geneList, geneSetList, method, n_cores = 1, prefix = NULL) {
   
   # Load necessary packages
   library(pbapply)
