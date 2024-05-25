@@ -70,14 +70,20 @@ res=new("gseaResult",
         params     = params,
         readable   = FALSE
         )
-res@organism <- "UNKNOWN"
+res@organism <- "Homo sapiens"
 res@setType <- "UNKNOWN"
-res@keytype <- "UNKNOWN"
+res@keytype <- "Symbol"
 
 library(enrichplot)
-barplot(res)
+res%>%barplot(x='pvalue')
 cnetplot(res)
 heatplot(res,showCategory = 3)
 treeplot(res)
 
 emapplot(res,showCategory = 3)
+
+
+trace("dotplot_internal", browser, exit=FALSE)
+dotplot(res, x='setSize', size=NULL, showCategory=3)
+
+enrichplot:::fortify.gseaResult(res,by=NULL)
