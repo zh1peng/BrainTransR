@@ -1,10 +1,10 @@
 library(BrainEnrich)
 library(dplyr)
-brain_data=get_brainExample(type='PC1') %>% 
-            filter(stringr::str_detect(Region, '^L_'))%>%
-            tibble::column_to_rownames('Region')
-gene_data=get_geneExp(atlas = 'desikan', rdonor = 'r0.6', hem = 'L')
 
+data("gene_data")
+data("PC1_data")
+data("syngo_annoData")
+brain_data=PC1_data
 geneList.true=corr_brain_gene(gene_data, brain_data, method = 'pearson')  
 annoData=get_annoData(type='CellType',parameter = 'Seidlitz2020')
 geneSetList=get_geneSetList(annoData)
@@ -12,6 +12,8 @@ geneSetList=get_geneSetList(annoData)
 
 selected.gs=filter_geneSetList(rownames(geneList.true), geneSetList, 20, 200)
 gs_score.true=aggregate_geneSetList(geneList.true,selected.gs, n_cores = 0, prefix=NULL,  method = 'mean')
+
+gs_cores=find_core_genes(geneList.true, selected.gs, method = 'mean', n_cores = 0, threshold_type = 'sd', threshold = 1.5)
 
 # resample gene
 geneList.null=resample_gene(geneList.true, 1000)
@@ -59,6 +61,9 @@ res <- data.frame(
   qvalue = qvalues,
   stringsAsFactors = FALSE
 )
+
+res$core_enrichment <- sapply(gs_cores, paste0, collapse='/')
+
 rownames(res) <- NULL
 
 attributes(geneList.true) <- NULL
@@ -74,6 +79,7 @@ res@organism <- "Homo sapiens"
 res@setType <- "UNKNOWN"
 res@keytype <- "Symbol"
 
+
 library(enrichplot)
 res%>%barplot(x='pvalue')
 cnetplot(res)
@@ -83,7 +89,8 @@ treeplot(res)
 emapplot(res,showCategory = 3)
 
 
-trace("dotplot_internal", browser, exit=FALSE)
-dotplot(res, x='setSize', size=NULL, showCategory=3)
 
 enrichplot:::fortify.gseaResult(res,by=NULL)
+
+barplot(res)
+dotplot(res)

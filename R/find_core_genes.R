@@ -71,7 +71,7 @@ find_core_genes <- function(geneList, geneSetList, method, n_cores = 1, threshol
   } else if (threshold_type == 'percentile') {
     core_genes <- lapply(loo_changes, identify_core_genes_percentile, percentile = threshold)
   }
-  
+  names(core_genes) <- names(geneSetList)
   return(core_genes)
 }
 

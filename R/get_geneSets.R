@@ -11,7 +11,7 @@
 #' @param parameter Additional parameter for specific types like 'GO' and 'CellType'. For 'GO', use 'BP', 'MF', or 'CC'. For 'CellType', use 'Seidlitz2020', 'Lake2018', or 'Martins2021'.
 #' @return A list of gene sets where each element is a vector of genes associated with a specific term.
 #' @import DOSE
-#' @improt clusterProfiler
+#' @import clusterProfiler
 #' @import ReactomePA
 #' @examples
 #' \dontrun{

@@ -18,4 +18,6 @@ Imports:
     clusterProfiler,
     ReactomePA,
     org.Hs.eg.db
-
+Depends: 
+    R (>= 2.10)
+LazyData: true
