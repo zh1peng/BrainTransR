@@ -26,7 +26,10 @@ gs_score.null=aggregate_geneSetList_matching_coexp(geneList.true,selected.gs,sam
 pvals=calculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
 
 # spin brain provide coord.l
-perm_id=rotate_parcellation(coord.l = , nrot = 1000)
+data(coord)
+
+
+perm_id=rotate_parcellation(coord.l = as.matrix(coord), nrot = 1000, seed=2024)
 null_brain_data=generate_null_brain_data(brain_data, perm_id)
 geneList.null=corr_brain_gene(gene_data, null_brain_data, method = 'pearson')
 gs_score.null=aggregate_geneSetList(geneList.null, selected.gs, method = 'mean')

@@ -82,8 +82,15 @@ generate_null_brain_data <- function(brain_data, perm_id) {
 #' permutations <- rotate_parcellation(NULL, coord.r)
 rotate_parcellation <- function(coord.l = NULL, 
                                 coord.r = NULL, nrot = 10000, 
-                                method = c('hungarian', 'vasa')) {
+                                method = c('hungarian', 'vasa'),
+                                seed = NULL) {
   method=match.arg(method)
+
+  # Set seed for reproducibility
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
+
   # Check that at least one set of coordinates is provided
   if (is.null(coord.l) && is.null(coord.r)) {
     stop("At least one of coord.l or coord.r must be provided.")
@@ -134,6 +141,28 @@ rotate_parcellation <- function(coord.l = NULL,
     dist.l <- if (!is.null(coord.l)) as.matrix(dist(coord.l, coord.l.rot)) else NULL
     dist.r <- if (!is.null(coord.r)) as.matrix(dist(coord.r, coord.r.rot)) else NULL
     
+    if (!is.null(coord.l)){
+    dist.l = array(0,dim=c(nroi.l,nroi.l));
+    for (i in 1:nroi.l) { # left
+      for (j in 1:nroi.l) {
+        dist.l[i,j] = sqrt(sum((coord.l[i,]-coord.l.rot[j,])^2))
+      }
+    }
+    } else {
+      dist.l = NULL
+    }
+
+    if (!is.null(coord.r)){
+    dist.r = array(0,dim=c(nroi.r,nroi.r));
+    for (i in 1:nroi.r) { # right
+      for (j in 1:nroi.r) {
+        dist.r[i,j] = sqrt(sum((coord.r[i,]-coord.r.rot[j,])^2))
+      }
+    }
+    } else {
+      dist.r = NULL
+    }
+
     if (method == 'vasa') {
       
       if (!is.null(coord.l)) {
@@ -204,7 +233,7 @@ rotate_parcellation <- function(coord.l = NULL,
       message(sprintf("map to itself n. %d", c))
     }
     
-    if (r %% 10 == 0) message(sprintf("permutation %d of %d", r, nrot+100))
+    if (r %% 100 == 0) message(sprintf("permutation %d of %d", r, nrot+100))
   }
     # Remove duplicate columns and ensure only nrot unique permutations are returned
     perm_id <- perm_id[, !duplicated(t(perm_id))]
@@ -213,4 +242,6 @@ rotate_parcellation <- function(coord.l = NULL,
     }
   return(perm_id)
 }
+
+
 

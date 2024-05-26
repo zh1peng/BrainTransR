@@ -8,7 +8,8 @@ rotate_parcellation(
   coord.l = NULL,
   coord.r = NULL,
   nrot = 10000,
-  method = c("hungarian", "vasa")
+  method = c("hungarian", "vasa"),
+  seed = NULL
 )
 }
 \arguments{
