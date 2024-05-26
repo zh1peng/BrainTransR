@@ -264,6 +264,11 @@ get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021'
     file.copy(temp_file, local_files[[type]])
   }
 
+# Clean-up function to ensure temp files are removed
+    on.exit({
+      if (file.exists(temp_file)) unlink(temp_file)
+    }, add = TRUE)
+    
   tryCatch({
     if (type == 'Seidlitz2020') {
       # Read CSV file

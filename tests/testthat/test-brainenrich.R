@@ -1,17 +1,18 @@
 library(BrainEnrich)
 library(dplyr)
 
-data("gene_data")
-data("PC1_data")
-data("syngo_annoData")
-brain_data=PC1_data
-geneList.true=corr_brain_gene(gene_data, brain_data, method = 'pearson')  
-annoData=get_annoData(type='CellType',parameter = 'Seidlitz2020')
-geneSetList=get_geneSetList(annoData)
+data("gene_data_sample")
+data("brain_data_PC1")
+data("annoData_synGO")
+data("coord_dk_lh")
+
+geneList.true=corr_brain_gene(gene_data_sample, brain_data_PC1, method = 'pearson')  
+geneSetList=get_geneSetList(annoData_synGO)
 
 
 selected.gs=filter_geneSetList(rownames(geneList.true), geneSetList, 20, 200)
 gs_score.true=aggregate_geneSetList(geneList.true,selected.gs, n_cores = 0, prefix=NULL,  method = 'mean')
+
 
 gs_cores=find_core_genes(geneList.true, selected.gs, method = 'mean', n_cores = 0, threshold_type = 'sd', threshold = 1.5)
 
@@ -26,11 +27,9 @@ gs_score.null=aggregate_geneSetList_matching_coexp(geneList.true,selected.gs,sam
 pvals=calculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
 
 # spin brain provide coord.l
-data(coord)
 
-
-perm_id=rotate_parcellation(coord.l = coord, nrot = 1000, seed=2024)
-null_brain_data=generate_null_brain_data(brain_data, perm_id)
+perm_id=rotate_parcellation(coord.l = coord_dk_lh, nrot = 1000, seed=2024)
+null_brain_data=generate_null_brain_data(brain_data_PC1, perm_id)
 geneList.null=corr_brain_gene(gene_data, null_brain_data, method = 'pearson')
 gs_score.null=aggregate_geneSetList(geneList.null, selected.gs, method = 'mean')
 pvals=calculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
