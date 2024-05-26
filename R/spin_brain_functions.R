@@ -19,6 +19,10 @@ generate_null_brain_data <- function(brain_data, perm_id) {
     stop("Duplicate entries found in perm_id.")
   }
 
+  if (is.data.frame(brain_data)){
+    brain_data <- as.matrix(brain_data)
+  }
+
   # Define dimensions
   region_n <- nrow(perm_id)
   perm_n <- ncol(perm_id)
@@ -91,10 +95,21 @@ rotate_parcellation <- function(coord.l = NULL,
     set.seed(seed)
   }
 
+
   # Check that at least one set of coordinates is provided
   if (is.null(coord.l) && is.null(coord.r)) {
     stop("At least one of coord.l or coord.r must be provided.")
   }
+  
+  if (!is.null(coord.l)& is.data.frame(coord.l)){
+    coord.l <- as.matrix(coord.l)
+  }
+
+  if(!is.null(coord.r)& is.data.frame(coord.r)){
+    coord.r <- as.matrix(coord.r)
+  }
+
+
 
   # Check that coordinate dimensions are correct
   if (!is.null(coord.l) && dim(coord.l)[2] != 3) {
@@ -116,7 +131,7 @@ rotate_parcellation <- function(coord.l = NULL,
   nroi.r <- if (!is.null(coord.r)) dim(coord.r)[1] else 0
   nroi <- nroi.l + nroi.r
   
-  perm_id <- array(0, dim = c(nroi, nrot))
+  perm_id <- array(0, dim = c(nroi, nrot+100))
   r <- 0
   c <- 0
   
@@ -138,8 +153,6 @@ rotate_parcellation <- function(coord.l = NULL,
     coord.l.rot <- if (!is.null(coord.l)) coord.l %*% TL else NULL
     coord.r.rot <- if (!is.null(coord.r)) coord.r %*% TR else NULL
     
-    dist.l <- if (!is.null(coord.l)) as.matrix(dist(coord.l, coord.l.rot)) else NULL
-    dist.r <- if (!is.null(coord.r)) as.matrix(dist(coord.r, coord.r.rot)) else NULL
     
     if (!is.null(coord.l)){
     dist.l = array(0,dim=c(nroi.l,nroi.l));

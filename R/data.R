@@ -1,59 +1,47 @@
-#' SynGO Annotation Data
+#' Annotation Data for SynGO
 #'
-#' This dataset includes synaptic functionalities and gene ontology annotations from the SynGO project,
-#' useful for studies focused on synaptic functions and disorders.
+#' This dataset contains annotation data fetched from the BrainEnrich package for SynGO.
 #'
-#' @format A \code{\link[data.frame]{data.frame}}
-#' @source SynGO project, sourced from \url{https://www.syngoportal.org/}
-#' @examples
-#' data(syngo_annoData)
-#' summary(syngo_annoData)
-"syngo_annoData"
+#' @format A data frame with various annotation data.
+#' @source BrainEnrich::get_annoData(type='SynGO')
+"anno_data_synGO"
 
-#' Permutation ID Data for Desikan Spin Brain (Left Hemisphere)
+#' Brain Data Desikan Left Hemisphere PC1
 #'
-#' Permutation identifiers used for analyses involving spatial autocorrelation in neuroimaging data,
-#' specifically tailored for the left hemisphere based on the Desikan atlas.
+#' This dataset contains PC1 data filtered for regions starting with 'L_' in the Desikan atlas.
 #'
-#' @format An R object loaded via \code{\link[base]{readRDS}}
-#' @source Data generated internally using Desikan atlas configurations.
-#' @examples
-#' data(perm_id)
-#' length(perm_id)
-"perm_id"
+#' @format A data frame with rows as regions and columns as PC1 data.
+#' @source read.csv('data-raw/desikan_PC1_data.csv')
+"brain_data_dk_lh_PC1"
 
-#' Principal Component 1 Data Filtered by Region (Left Hemisphere)
+#' Brain Data Desikan Left Hemisphere Cushing
 #'
-#' The first principal component of brain data from the Desikan atlas,
-#' filtered to include only regions starting with 'L_', indicative of the left hemisphere.
+#' This dataset contains Cushing's data, filtered and reordered based on PC1 data for regions starting with 'L_' in the Desikan atlas.
 #'
-#' @format A \code{\link[data.frame]{data.frame}} with regions as row names.
-#' @source Processed based on PC1 analysis from MRI data of the Desikan atlas (left hemisphere).
-#' @examples
-#' data(PC1_data)
-#' head(PC1_data)
-"PC1_data"
+#' @format A data frame with rows as regions and columns as Cohen's d values.
+#' @source read.csv('data-raw/desikan_cushing_data.csv')
+"brain_data_dk_lh_Cushing"
 
-#' Cushing's Disease Related Data (Left Hemisphere)
+#' Gene Expression Data Desikan Left Hemisphere
 #'
-#' Processed data from a study on Cushing's disease, focusing on Cohen's d values for brain regions,
-#' specifically ordered and filtered for the left hemisphere using the Desikan atlas.
+#' This dataset contains gene expression data fetched from the BrainEnrich package for the Desikan atlas, left hemisphere.
 #'
-#' @format A \code{\link[data.frame]{data.frame}} with regions as row names.
-#' @source Adapted from clinical study data on Cushing's disease, aligned with Desikan atlas regions (left hemisphere).
-#' @examples
-#' data(Cushing_data)
-#' plot(Cushing_data$cohend, type = 'h')
-"Cushing_data"
+#' @format A data frame with various gene expression data.
+#' @source BrainEnrich::get_geneExp(atlas = 'desikan', rdonor = 'r0.6', hem = 'L')
+"gene_data_dk_lh"
 
-#' Gene Expression Data from Desikan Atlas (Left Hemisphere)
+#' Desikan Centroid Coordinates for Left Hemisphere
 #'
-#' This dataset provides gene expression levels across various regions of the left hemisphere,
-#' based on the Desikan atlas, aimed at neurogenetic studies.
+#' This dataset contains the centroid coordinates for the Desikan atlas regions in the left hemisphere.
 #'
-#' @format A \code{\link[data.frame]{data.frame}} with gene identifiers as row names.
-#' @source Gene expression profiles derived from the Desikan atlas, release 'r0.6', specifically for the left hemisphere.
-#' @examples
-#' data(gene_data)
-#' summary(gene_data$expression_level)
-"gene_data"
+#' @format A data frame with rows as regions and columns as coordinates (x, y, z).
+#' @source read.csv('data-raw/desikan_centroid.csv')
+"coord_dk_lh"
+
+#' Permutation IDs for Desikan Left Hemisphere
+#'
+#' This dataset contains permutation IDs generated for the Desikan spin brain for the left hemisphere.
+#'
+#' @format A matrix with permutation IDs for regions.
+#' @source rotate_parcellation(coord.l = coord_dk_lh, nrot = 1000, seed = 2024)
+"perm_id_dk_lh"
