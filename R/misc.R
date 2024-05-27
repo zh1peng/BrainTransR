@@ -38,37 +38,6 @@ calculate_pvals <- function(statList.true, statList.null, method = c('standard',
 }
 
 
-#' Calculate Q-Values
-#'
-#' This function calculates q-values from a vector of p-values using the `qvalue` package.
-#' Q-values are used to control the false discovery rate (FDR) in multiple hypothesis testing.
-#'
-#' @param pvals A numeric vector of p-values.
-#' @return A numeric vector of q-values corresponding to the input p-values, or NA if q-value calculation fails.
-#' @examples
-#' pvals <- runif(100)
-#' qvals <- calculate_qvalue(pvals)
-#' print(qvals)
-#' @importFrom qvalue qvalue
-#' @export
-calculate_qvalue <- function(pvals) {
-  if (length(pvals) == 0) {
-    return(numeric(0))
-  }
-  
-  qobj <- tryCatch(
-    qvalue(pvals, lambda = 0.05, pi0.method = "bootstrap"),
-    error = function(e) NULL
-  )
-  
-  if (!is.null(qobj) && class(qobj) == "qvalue") {
-    qvalues <- qobj$qvalues
-  } else {
-    qvalues <- rep(NA, length(pvals))
-  }
-  
-  return(qvalues)
-}
 
 
 cor2p <- function(r,n){
@@ -92,3 +61,8 @@ ask_user_continue <- function(msg) {
     }
   }
 }
+
+
+
+
+

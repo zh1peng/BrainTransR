@@ -6,15 +6,21 @@ data("brain_data_PC1")
 data("annoData_synGO")
 data("coord_dk_lh")
 
-geneList.true=corr_brain_gene(gene_data_sample, brain_data_PC1, method = 'pearson')  
-geneSetList=get_geneSetList(annoData_synGO)
+gene_data=gene_data_sample
+annoData=annoData_synGO
+brain_data=brain_data_PC1
+coord.l=coord_dk_lh
 
+
+
+geneList.true=corr_brain_gene(gene_data, brain_data, method = 'pearson')  
+geneSetList=get_geneSetList(annoData)
 
 selected.gs=filter_geneSetList(rownames(geneList.true), geneSetList, 20, 200)
 gs_score.true=aggregate_geneSetList(geneList.true,selected.gs, n_cores = 0, prefix=NULL,  method = 'mean')
 
 
-gs_cores=find_core_genes(geneList.true, selected.gs, method = 'mean', n_cores = 0, threshold_type = 'sd', threshold = 1.5)
+core_genes=find_core_genes(geneList.true, selected.gs, method = 'mean', n_cores = 0, threshold_type = 'sd', threshold = 1)
 
 # resample gene
 geneList.null=resample_gene(geneList.true, 1000)
@@ -28,8 +34,8 @@ pvals=calculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
 
 # spin brain provide coord.l
 
-perm_id=rotate_parcellation(coord.l = coord_dk_lh, nrot = 1000, seed=2024)
-null_brain_data=generate_null_brain_data(brain_data_PC1, perm_id)
+perm_id=rotate_parcellation(coord.l = coord.l, nrot = 5000, seed=2024)
+null_brain_data=generate_null_brain_data(brain_data, perm_id)
 geneList.null=corr_brain_gene(gene_data, null_brain_data, method = 'pearson')
 gs_score.null=aggregate_geneSetList(geneList.null, selected.gs, method = 'mean')
 pvals=calculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
@@ -39,10 +45,11 @@ qvalues <- calculate_qvalue(unlist(pvals))
 # prepare results for group level
 
 
-
+TERM2NAME=getFromNamespace("TERM2NAME", "DOSE")
+calculate_qvalue=getFromNamespace("calculate_qvalue", "DOSE")
 
 gs.name=names(selected.gs)
-Description <- names(selected.gs)
+Description <-  TERM2NAME(gs.name, annoData)
 
 
 params <- list(pvalueCutoff = 0.05,
@@ -64,35 +71,65 @@ res <- data.frame(
   stringsAsFactors = FALSE
 )
 
-res$core_enrichment <- sapply(gs_cores, paste0, collapse='/')
+res$core_enrichment <- sapply(core_genes, paste0, collapse='/')
 
-rownames(res) <- NULL
 
-attributes(geneList.true) <- NULL
 
-res=new("gseaResult",
+
+# attr(geneList.true, "is_fisherz") <- NULL
+# attr(geneList.true, "n.region") <- NULL
+# attr(geneList.true, "cor_type") <- NULL
+
+
+
+
+res.obj=new("gseaResult",
         result     = res,
         geneSets   = selected.gs,
-        geneList   = geneList.true,
+        geneList   = geneList.true[,1],
         params     = params,
-        readable   = FALSE
+        readable   = TRUE
         )
-res@organism <- "Homo sapiens"
-res@setType <- "UNKNOWN"
-res@keytype <- "Symbol"
+res.obj@organism <- "Homo sapiens"
+res.obj@setType <- "UNKNOWN"
+res.obj@keytype <- "Symbol"
 
 
 library(enrichplot)
-res%>%barplot(x='pvalue')
-cnetplot(res)
-heatplot(res,showCategory = 3)
-treeplot(res)
+res.obj@result%>%barplot(x='pvalue')
 
+heatplot(res.obj,showCategory = 3)
+treeplot(res.obj)
 emapplot(res,showCategory = 3)
 
+upsetplot(res.obj,n=5)
 
+list2df=getFromNamespace('list2df','enrichplot')
+extract_geneSets=getFromNamespace('extract_geneSets','enrichplot')
+geneInCategory=getFromNamespace('geneInCategory','enrichplot')
+x=res.obj
+ geneSets <- extract_geneSets(x, 10)
 
-enrichplot:::fortify.gseaResult(res,by=NULL)
-
-barplot(res)
+cnetplot(res.obj)
+barplot(res.obj)
 dotplot(res)
+upsetplot(res.obj)
+
+
+library(DOSE)
+data(geneList)
+edo2 <- gseDO(geneList)
+
+cnetplot(edo2)
+
+de <- names(geneList)[abs(geneList) > 2]
+
+edo <- enrichDGN(de)
+
+edox <- setReadable(edo2, 'org.Hs.eg.db', 'ENTREZID')
+cnetplot(edox, categorySize="pvalue")
+
+extract_geneSets(edo2,2)
+edo2.df=as.data.frame(edo2)
+
+extract_geneSets(res.obj,2)

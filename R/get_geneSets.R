@@ -176,7 +176,7 @@ get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_do
   TERM2GENE <- data %>%
     select(id, hgnc_symbol) %>%
     rename(term = id, gene = hgnc_symbol) %>%
-    mutate(gene = strsplit(gene, ";")) %>%
+    mutate(gene = strsplit(gene, ", ")) %>%
     unnest(cols = c(gene))
 
   # Process TERM2NAME
