@@ -5,8 +5,8 @@
 \title{Perform Brain Gene Set Analysis}
 \usage{
 brainenrich(
-  gene_data,
   brain_data,
+  gene_data,
   annoData,
   cor_method = c("pearson", "spearman", "pls1c", "pls1w", "custom"),
   aggre_method = c("mean", "median", "meanabs", "meansqr", "maxmean", "ks_orig",
@@ -29,9 +29,9 @@ brainenrich(
 )
 }
 \arguments{
-\item{gene_data}{A data frame of gene expression data.}
-
 \item{brain_data}{A data frame of brain data. Region by 1 column.}
+
+\item{gene_data}{A data frame of gene expression data.}
 
 \item{annoData}{An environment containing annotation data.}
 

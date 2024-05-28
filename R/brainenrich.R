@@ -2,8 +2,8 @@
 #'
 #' This function performs a gene set analysis using brain data.
 #'
-#' @param gene_data A data frame of gene expression data.
 #' @param brain_data A data frame of brain data. Region by 1 column.
+#' @param gene_data A data frame of gene expression data.
 #' @param annoData An environment containing annotation data.
 #' @param cor_method A character string specifying the correlation method. 
 #'                   Default is 'pearson'. Other options include 'spearman', 'pls1c', 
@@ -36,8 +36,8 @@
 #' @return A gseaResult object containing the enrichment results.
 #' @import DOSE
 #' @export
-brainenrich <- function(gene_data, 
-                        brain_data,
+brainenrich <- function(brain_data,
+                        gene_data, 
                         annoData,
                         cor_method = c('pearson', 'spearman', 'pls1c', 'pls1w', 'custom'),
                         aggre_method = c("mean", "median", "meanabs", "meansqr",
@@ -81,7 +81,7 @@ brainenrich <- function(gene_data,
   
   # Perform analysis
   message("Calculating true gene-brain correlations...")
-  geneList.true <- corr_brain_gene(gene_data, brain_data, method = cor_method)  
+  geneList.true <- corr_brain_gene(gene_data=gene_data, brain_data=brain_data, method = cor_method)  
   message("Generating gene set list from annotation data...")
   geneSetList <- get_geneSetList(annoData)
   message("Filtering gene set list...")
@@ -95,7 +95,7 @@ brainenrich <- function(gene_data,
       perm_id <- rotate_parcellation(coord.l = coord.l, coord.r = coord.r, nrot = n_perm)
     }
     null_brain_data <- generate_null_brain_data(brain_data, perm_id)
-    geneList.null <- corr_brain_gene(gene_data, null_brain_data, method = cor_method)
+    geneList.null <- corr_brain_gene(gene_data=gene_data, brain_data=null_brain_data, method = cor_method)
     gs_score.null <- aggregate_geneSetList(geneList.null, selected.gs, method = aggre_method, n_cores = n_cores)
   } else if (null_model == 'resample_gene') { 
     message("Generating null gene list with resample_gene model...")

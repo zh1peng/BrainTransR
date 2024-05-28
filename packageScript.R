@@ -37,5 +37,8 @@ usethis::use_test('get_geneSets.R')
 usethis::use_test('brainenrich.R')
 usethis::use_test('brainscore.R')
 
+usethis::use_vignette('Group_level_analysis.Rmd')
+usethis::use_vignette('Individual_analysis.Rmd')
+
 
 # prepare example data

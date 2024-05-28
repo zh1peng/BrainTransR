@@ -10,8 +10,8 @@ annoData=annoData_synGO
 brain_data=brain_data_PC1
 coord.l=coord_dk_lh
 
-res=brainenrich(gene_data, 
-            brain_data, 
+res=brainenrich( brain_data=brain_data, 
+            gene_data=gene_data, 
             annoData, 
             cor_method = 'pearson', 
             aggre_method = 'mean', 
@@ -21,6 +21,16 @@ res=brainenrich(gene_data,
 a=as.data.frame(res)
 library(enrichplot)
 cnetplot(res)
+rescale.AsIs <- function(x, ...){
+  # 自定义dropAsis方法
+  dropAsis <- function(x){
+    cls <- class(x)
+    structure(x, class = setdiff(cls, "AsIs"))
+  }
+  # 调用本来的rescale方法
+  scales:::rescale(dropAsis(x), ...)
+}
+
 dim(res@permScores)
 
 geneList.true=corr_brain_gene(gene_data, brain_data, method = 'pearson')  

@@ -42,7 +42,7 @@ brainscore <- function(brain_data,
   
   # Calculate gene-brain correlations
   message("Calculating gene-brain correlations...")
-  geneList <- corr_brain_gene(gene_data, brain_data, method = cor_method) 
+  geneList <- corr_brain_gene(gene_data=gene_data, brain_data=brain_data, method = cor_method) 
   
   # Generate gene set list from annotation data
   message("Generating gene set list from annotation data...")
@@ -54,7 +54,7 @@ brainscore <- function(brain_data,
   
   # Aggregate gene set scores
   message("Aggregating gene set scores...")
-  gs.score <- aggregate_geneSetList(geneList, selected.gs, method = aggre_method, prefix = prefix)
+  gs.score <- aggregate_geneSetList(geneList, selected.gs, method = aggre_method)
   
   # Prepare result data frame
   res <- data.frame(gs.score)
