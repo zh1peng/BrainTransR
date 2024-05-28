@@ -4,13 +4,7 @@
 \alias{aggregate_geneSetList}
 \title{Aggregate Gene Set List in Parallel}
 \usage{
-aggregate_geneSetList(
-  geneList,
-  geneSetList,
-  method,
-  n_cores = 1,
-  prefix = NULL
-)
+aggregate_geneSetList(geneList, geneSetList, method, n_cores = 1)
 }
 \arguments{
 \item{geneList}{A list of genes.}
@@ -19,8 +13,6 @@ aggregate_geneSetList(
 
 \item{n_cores}{Number of cores to use for parallel processing. Default is 1.
 If set to 0, it uses all available cores minus one.}
-
-\item{prefix}{Optional prefix to add to the names of the resulting list.}
 
 \item{...}{Additional arguments to be passed to the \code{aggregate_geneSet} function.}
 }

@@ -31,7 +31,7 @@ brainenrich(
 \arguments{
 \item{gene_data}{A data frame of gene expression data.}
 
-\item{brain_data}{A data frame of brain data. Region by 1column.}
+\item{brain_data}{A data frame of brain data. Region by 1 column.}
 
 \item{annoData}{An environment containing annotation data.}
 
