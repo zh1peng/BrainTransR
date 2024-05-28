@@ -35,7 +35,7 @@ devtools::test(filter = "aggregate_geneSet")
 
 usethis::use_test('get_geneSets.R')
 usethis::use_test('brainenrich.R')
-
+usethis::use_test('brainscore.R')
 
 
 # prepare example data

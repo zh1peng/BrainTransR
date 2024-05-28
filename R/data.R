@@ -37,3 +37,13 @@
 #' @format A data frame with rows as regions and columns as coordinates (x, y, z).
 #' @source read.csv('data-raw/desikan_centroid.csv')
 "coord_dk_lh"
+
+
+
+
+#' Random Desikan region for testing brainscore function
+#'
+#' @format Simulated data frame for 34 regions by 100 subject.
+#' @source read.csv('data-raw/desikan_centroid.csv')
+"brain_data_random"
+

@@ -75,7 +75,6 @@ get_annoData <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', 'Syn
 #' @param convert_to_symbol Logical; if TRUE, converts gene identifiers to gene symbols.
 #' @return A list of gene sets.
 #' @import DOSE
-#' @export
 get_geneSetList <- function(annoData, convert_to_symbol = FALSE) {
   getGeneSet <- getFromNamespace('getGeneSet', 'DOSE')
   
@@ -92,6 +91,19 @@ get_geneSetList <- function(annoData, convert_to_symbol = FALSE) {
   return(geneSetList)
 }
 
+#' Get Gene Set Descriptions
+#'
+#' This function retrieves descriptions for gene sets from annotation data.
+#'
+#' @param annoData An environment containing annotation data.
+#' @return A character vector of gene set descriptions.
+#' @import DOSE
+get_geneSetDescription <- function(annoData) {
+  TERM2NAME <- getFromNamespace("TERM2NAME", "DOSE")
+  gs.name <- names(annoData)
+  Description <- TERM2NAME(gs.name, annoData)
+  return(Description)
+}
 
 
 

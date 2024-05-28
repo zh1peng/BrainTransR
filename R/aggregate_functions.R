@@ -229,13 +229,12 @@ aggregate_geneSet <- function(geneList, # named correlation/coefficient matrix
 #' @param geneSetList A list of gene sets to be aggregated.
 #' @param n_cores Number of cores to use for parallel processing. Default is 1. 
 #' If set to 0, it uses all available cores minus one.
-#' @param prefix Optional prefix to add to the names of the resulting list.
 #' @param ... Additional arguments to be passed to the `aggregate_geneSet` function.
 #' @return A list of aggregated gene set scores.
 #' @import pbapply
 #' @import parallel
 #' @export
-aggregate_geneSetList <- function(geneList, geneSetList, method, n_cores = 1, prefix = NULL) {
+aggregate_geneSetList <- function(geneList, geneSetList, method, n_cores = 1) {
   
   # Load necessary packages
   library(pbapply)
@@ -260,12 +259,7 @@ aggregate_geneSetList <- function(geneList, geneSetList, method, n_cores = 1, pr
   
   # Stop the cluster after processing
   stopCluster(cl)
-  
-  # Add prefix to names if specified
-  if (is.null(prefix)|!is.character(prefix)){
-    prefix=""
-  }
-  names(allgs.scores) <- paste0(prefix, names(geneSetList))
+  names(allgs.scores) <-  names(geneSetList)
   return(allgs.scores)
 }
 

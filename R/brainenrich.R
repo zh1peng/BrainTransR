@@ -3,7 +3,7 @@
 #' This function performs a gene set analysis using brain data.
 #'
 #' @param gene_data A data frame of gene expression data.
-#' @param brain_data A data frame of brain data. Region by 1column.
+#' @param brain_data A data frame of brain data. Region by 1 column.
 #' @param annoData An environment containing annotation data.
 #' @param cor_method A character string specifying the correlation method. 
 #'                   Default is 'pearson'. Other options include 'spearman', 'pls1c', 
@@ -35,7 +35,6 @@
 #'                            for matched co-expression. Default is 1000000.
 #' @return A gseaResult object containing the enrichment results.
 #' @import DOSE
-
 #' @export
 brainenrich <- function(gene_data, 
                         brain_data,
@@ -49,7 +48,7 @@ brainenrich <- function(gene_data,
                         perm_id = NULL,
                         coord.l = NULL,
                         coord.r = NULL,
-                        seed=NULL,
+                        seed = NULL,
                         n_cores = 0,
                         minGSSize = 10,
                         maxGSSize = 200,
@@ -72,8 +71,7 @@ brainenrich <- function(gene_data,
   }
   
   if (ncol(brain_data) != 1) {
-    stop("This function is designed for group-level analysis and supports one column of brain data. 
-          Considering using sapply.")
+    stop("This function is designed for group-level analysis and supports one column of brain data. Consider using sapply.")
   }
 
   cor_method <- match.arg(cor_method)
@@ -82,26 +80,34 @@ brainenrich <- function(gene_data,
   thres_type <- match.arg(thres_type)
   
   # Perform analysis
+  message("Calculating true gene-brain correlations...")
   geneList.true <- corr_brain_gene(gene_data, brain_data, method = cor_method)  
+  message("Generating gene set list from annotation data...")
   geneSetList <- get_geneSetList(annoData)
+  message("Filtering gene set list...")
   selected.gs <- filter_geneSetList(rownames(geneList.true), geneSetList, minGSSize = minGSSize, maxGSSize = maxGSSize)
-  gs_score.true <- aggregate_geneSetList(geneList.true, selected.gs, method = aggre_method, n_cores = n_cores, prefix = NULL)
+  message("Aggregating true gene set scores...")
+  gs_score.true <- aggregate_geneSetList(geneList.true, selected.gs, method = aggre_method, n_cores = n_cores)
   
   if (null_model == 'spin_brain') {
+    message("Generating null brain data with spin_brain model...")
     if (is.null(perm_id)) {
       perm_id <- rotate_parcellation(coord.l = coord.l, coord.r = coord.r, nrot = n_perm)
     }
     null_brain_data <- generate_null_brain_data(brain_data, perm_id)
     geneList.null <- corr_brain_gene(gene_data, null_brain_data, method = cor_method)
-    gs_score.null <- aggregate_geneSetList(geneList.null, selected.gs, method = aggre_method, n_cores = n_cores, prefix = NULL)
+    gs_score.null <- aggregate_geneSetList(geneList.null, selected.gs, method = aggre_method, n_cores = n_cores)
   } else if (null_model == 'resample_gene') { 
+    message("Generating null gene list with resample_gene model...")
     geneList.null <- resample_gene(geneList.true, n_perm = n_perm)
-    gs_score.null <- aggregate_geneSetList(geneList.null, selected.gs, method = aggre_method, n_cores = n_cores, prefix = NULL)
+    gs_score.null <- aggregate_geneSetList(geneList.null, selected.gs, method = aggre_method, n_cores = n_cores)
   } else if (null_model == 'coexp_matched') { 
+    message("Generating null gene list with coexp_matched model...")
     geneList.null <- resample_gene_coexp_matched(gene_data, geneSetList, tol = matchcoexp_tol, max_iter = matchcoexp_max_iter, n_perm = n_perm, n_cores = n_cores)
     gs_score.null <- aggregate_geneSetList_matching_coexp(geneList.true, selected.gs, sampled_gs, method = aggre_method, n_cores = n_cores)
   }
   
+  message("Calculating p-values...")
   if (aggre_method %in% c('ks_orig', 'ks_weighted')) {
     pvals <- caculate_pvals(gs_score.true, gs_score.null, method = c('split_pos_neg'))
   } else {
@@ -111,7 +117,7 @@ brainenrich <- function(gene_data,
   pvals.adj <- p.adjust(pvals, method = pAdjustMethod)
   qvals <- calculate_qvalue(pvals)
   
-  
+  message("Preparing results...")
   gs.name <- names(selected.gs)
   TERM2NAME <- getFromNamespace("TERM2NAME", "DOSE")
   Description <- TERM2NAME(gs.name, annoData)
@@ -138,6 +144,7 @@ brainenrich <- function(gene_data,
     stringsAsFactors = FALSE
   )
   
+  message("Filtering significant results...")
   res <- res[!is.na(res$pvalue), ]
   res <- res[res$pvalue <= pvalueCutoff, ]
   res <- res[res$p.adjust <= pvalueCutoff, ]
@@ -153,10 +160,12 @@ brainenrich <- function(gene_data,
                params = params,
                readable = FALSE))
   } else {
+    message("Identifying core genes...")
     servived.gs <- selected.gs[res$ID]
     core_genes <- find_core_genes(geneList.true, servived.gs, method = aggre_method, n_cores = n_cores, threshold_type = thres_type, threshold = thres_val)
     res$core_enrichment <- sapply(core_genes, paste0, collapse = '/')
     
+    message("Analysis complete.")
     return(new("gseaResult",
                result = res,
                geneSets = selected.gs,
