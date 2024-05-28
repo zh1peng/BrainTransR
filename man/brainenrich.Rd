@@ -16,6 +16,7 @@ brainenrich(
   perm_id = NULL,
   coord.l = NULL,
   coord.r = NULL,
+  seed = NULL,
   n_cores = 0,
   minGSSize = 10,
   maxGSSize = 200,
@@ -54,6 +55,8 @@ Default is 'spin_brain'. Other options include 'resample_gene',
 \item{coord.l}{A matrix of left hemisphere coordinates. Default is NULL.}
 
 \item{coord.r}{A matrix of right hemisphere coordinates. Default is NULL.}
+
+\item{seed}{An integer specifying the seed for reproducibility of spinning brain. Default is NULL.}
 
 \item{n_cores}{An integer specifying the number of cores to use. Default is 0.}
 

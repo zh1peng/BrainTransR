@@ -34,7 +34,7 @@ calculate_pvals <- function(statList.true, statList.null, method = c('standard',
     }
   })
   
-  return(pvals)
+  return(unlist(pvals))
 }
 
 

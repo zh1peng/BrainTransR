@@ -19,6 +19,7 @@
 #' @param perm_id A matrix of permutation IDs. Default is NULL.
 #' @param coord.l A matrix of left hemisphere coordinates. Default is NULL.
 #' @param coord.r A matrix of right hemisphere coordinates. Default is NULL.
+#' @param seed An integer specifying the seed for reproducibility of spinning brain. Default is NULL.
 #' @param n_cores An integer specifying the number of cores to use. Default is 0.
 #' @param minGSSize An integer specifying the minimum gene set size. Default is 10.
 #' @param maxGSSize An integer specifying the maximum gene set size. Default is 200.
@@ -48,6 +49,7 @@ brainenrich <- function(gene_data,
                         perm_id = NULL,
                         coord.l = NULL,
                         coord.r = NULL,
+                        seed=NULL,
                         n_cores = 0,
                         minGSSize = 10,
                         maxGSSize = 200,
@@ -105,11 +107,13 @@ brainenrich <- function(gene_data,
   } else {
     pvals <- calculate_pvals(gs_score.true, gs_score.null, method = c('standard'))
   }
-  
-  TERM2NAME <- getFromNamespace("TERM2NAME", "DOSE")
   calculate_qvalue <- getFromNamespace("calculate_qvalue", "DOSE")
+  pvals.adj <- p.adjust(pvals, method = pAdjustMethod)
+  qvals <- calculate_qvalue(pvals)
+  
   
   gs.name <- names(selected.gs)
+  TERM2NAME <- getFromNamespace("TERM2NAME", "DOSE")
   Description <- TERM2NAME(gs.name, annoData)
   
   params <- list(pvalueCutoff = pvalueCutoff,
@@ -128,9 +132,9 @@ brainenrich <- function(gene_data,
     Description = as.character(Description),
     setSize = sapply(selected.gs, length),
     gsScore = unlist(gs_score.true),
-    pvalue = unlist(pvals),
-    p.adjust = p.adjust(pvals, method = pAdjustMethod),
-    qvalue = calculate_qvalue(pvals),
+    pvalue = pvals,
+    p.adjust = pvals.adj,
+    qvalue = qvals,
     stringsAsFactors = FALSE
   )
   

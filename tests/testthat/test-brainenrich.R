@@ -1,5 +1,4 @@
 library(BrainEnrich)
-library(dplyr)
 
 data("gene_data_sample")
 data("brain_data_PC1")
@@ -11,7 +10,17 @@ annoData=annoData_synGO
 brain_data=brain_data_PC1
 coord.l=coord_dk_lh
 
-
+res=brainenrich(gene_data, 
+            brain_data, 
+            annoData, 
+            cor_method = 'pearson', 
+            aggre_method = 'mean', 
+            null_model = 'spin_brain', 
+            n_perm = 5000, 
+            coord.l = coord.l)
+a=as.data.frame(res)
+library(enrichplot)
+cnetplot(res)
 
 geneList.true=corr_brain_gene(gene_data, brain_data, method = 'pearson')  
 geneSetList=get_geneSetList(annoData)
@@ -74,17 +83,6 @@ res <- data.frame(
 res$core_enrichment <- sapply(core_genes, paste0, collapse='/')
 
 
-
-
-# attr(geneList.true, "is_fisherz") <- NULL
-# attr(geneList.true, "n.region") <- NULL
-# attr(geneList.true, "cor_type") <- NULL
-
-geneList.null=
-
-as.data.frame(gs_score.null)
-a=bind_rows(gs_score.null)
-
 res.obj=new("gseaResult",
         result     = res,
         geneSets   = selected.gs,
@@ -135,3 +133,17 @@ extract_geneSets(edo2,2)
 edo2.df=as.data.frame(edo2)
 
 extract_geneSets(res.obj,2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

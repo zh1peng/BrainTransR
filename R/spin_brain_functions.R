@@ -246,7 +246,7 @@ rotate_parcellation <- function(coord.l = NULL,
       message(sprintf("map to itself n. %d", c))
     }
     
-    if (r %% 100 == 0) message(sprintf("permutation %d of %d", r, nrot+100))
+    if (r %% 100 == 0) message(sprintf("permutation %d of %d", r, nrot*1.2))
   }
     # Remove duplicate columns and ensure only nrot unique permutations are returned
     perm_id <- perm_id[, !duplicated(t(perm_id))]
