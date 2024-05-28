@@ -80,8 +80,10 @@ res$core_enrichment <- sapply(core_genes, paste0, collapse='/')
 # attr(geneList.true, "n.region") <- NULL
 # attr(geneList.true, "cor_type") <- NULL
 
+geneList.null=
 
-
+as.data.frame(gs_score.null)
+a=bind_rows(gs_score.null)
 
 res.obj=new("gseaResult",
         result     = res,

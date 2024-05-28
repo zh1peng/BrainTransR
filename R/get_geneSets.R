@@ -59,11 +59,9 @@ get_annoData <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', 'Syn
       stop("For type 'CellType', parameter must be one of 'Seidlitz2020', 'Lake2018', or 'Martins2021'.")
     }
     annoData <- get_celltype_data(parameter)
-    
   } else if (type == 'SynGO') {
     annoData <- get_SynGO_data()
   }
-  
   return(annoData)
 }
 
@@ -367,10 +365,15 @@ entrezid2symbol <- function(entrezid) {
 
 
 
+# library(AnnotationHub)
+# library(MeSHDbi)
+# ah <- AnnotationHub(localHub=TRUE)
+# hsa <- query(ah, c("MeSHDb", "Homo sapiens"))
+# file_hsa <- hsa[[1]]
+# db <- MeSHDbi::MeSHDb(file_hsa)
 
 
-
-
+# install.packages('dbplyr')
 
 
 

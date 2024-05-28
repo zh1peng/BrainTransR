@@ -65,7 +65,7 @@ generate_null_brain_data <- function(brain_data, perm_id) {
 
 #' @param coord.l Coordinates of left hemisphere regions on the sphere (array of size n(LH regions) x 3). Can be NULL if only right hemisphere is used.
 #' @param coord.r Coordinates of right hemisphere regions on the sphere (array of size n(RH regions) x 3). Can be NULL if only left hemisphere is used.
-#' @param nrot Number of rotations (default = 10000).
+#' @param nrot Number of rotations (default = 5000).
 #' @param method Method to match rotated and unrotated regions; options are 'vasa' (faster, can be suboptimal) or 'hungarian' (default, slower, optimal).
 #' @return Array of permutations, from set of regions to itself (array of size n(total regions) x nrot).
 #' @importFrom matrixStats rowMins
@@ -85,7 +85,7 @@ generate_null_brain_data <- function(brain_data, perm_id) {
 #' coord.r <- matrix(runif(30), nrow = 10, ncol = 3)
 #' permutations <- rotate_parcellation(NULL, coord.r)
 rotate_parcellation <- function(coord.l = NULL, 
-                                coord.r = NULL, nrot = 10000, 
+                                coord.r = NULL, nrot = 5000, 
                                 method = c('hungarian', 'vasa'),
                                 seed = NULL) {
   method=match.arg(method)
@@ -131,14 +131,14 @@ rotate_parcellation <- function(coord.l = NULL,
   nroi.r <- if (!is.null(coord.r)) dim(coord.r)[1] else 0
   nroi <- nroi.l + nroi.r
   
-  perm_id <- array(0, dim = c(nroi, nrot+100))
+  perm_id <- array(0, dim = c(nroi, round(nrot*1.2)))
   r <- 0
   c <- 0
   
   I1 <- diag(3)
   I1[1, 1] <- -1
   
-  while (r < nrot+100) {
+  while (r < round(nrot*1.2)) {
     
     A <- matrix(rnorm(9, mean = 0, sd = 1), nrow = 3, ncol = 3)
     qrdec <- qr(A)

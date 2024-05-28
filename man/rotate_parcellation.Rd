@@ -7,7 +7,7 @@
 rotate_parcellation(
   coord.l = NULL,
   coord.r = NULL,
-  nrot = 10000,
+  nrot = 5000,
   method = c("hungarian", "vasa"),
   seed = NULL
 )
@@ -17,7 +17,7 @@ rotate_parcellation(
 
 \item{coord.r}{Coordinates of right hemisphere regions on the sphere (array of size n(RH regions) x 3). Can be NULL if only left hemisphere is used.}
 
-\item{nrot}{Number of rotations (default = 10000).}
+\item{nrot}{Number of rotations (default = 5000).}
 
 \item{method}{Method to match rotated and unrotated regions; options are 'vasa' (faster, can be suboptimal) or 'hungarian' (default, slower, optimal).}
 }

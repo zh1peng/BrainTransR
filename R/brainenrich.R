@@ -1,41 +1,164 @@
-brainenrich <-function( gene_data, 
+#' Perform Brain Gene Set Analysis
+#'
+#' This function performs a gene set analysis using brain data.
+#'
+#' @param gene_data A data frame of gene expression data.
+#' @param brain_data A data frame of brain data. Region by 1column.
+#' @param annoData An environment containing annotation data.
+#' @param cor_method A character string specifying the correlation method. 
+#'                   Default is 'pearson'. Other options include 'spearman', 'pls1c', 
+#'                   'pls1w', 'custom'.
+#' @param aggre_method A character string specifying the aggregation method. 
+#'                     Default is 'mean'. Other options include 'median', 'meanabs', 
+#'                     'meansqr', 'maxmean', 'ks_orig', 'ks_weighted', 'ks_pos_neg_sum', 
+#'                     'local_fdr', 'sign_test', 'rank_sum', 'custom'.
+#' @param null_model A character string specifying the null model. 
+#'                   Default is 'spin_brain'. Other options include 'resample_gene', 
+#'                   'coexp_matched'.
+#' @param n_perm An integer specifying the number of permutations. Default is 5000.
+#' @param perm_id A matrix of permutation IDs. Default is NULL.
+#' @param coord.l A matrix of left hemisphere coordinates. Default is NULL.
+#' @param coord.r A matrix of right hemisphere coordinates. Default is NULL.
+#' @param n_cores An integer specifying the number of cores to use. Default is 0.
+#' @param minGSSize An integer specifying the minimum gene set size. Default is 10.
+#' @param maxGSSize An integer specifying the maximum gene set size. Default is 200.
+#' @param thres_type A character string specifying the threshold type for core genes. 
+#'                   Default is 'sd'. Other option is 'percentile'.
+#' @param thres_val A numeric value specifying the threshold value for core genes. Default is 1.
+#' @param pvalueCutoff A numeric value specifying the p-value cutoff for output. Default is 0.05.
+#' @param pAdjustMethod A character string specifying the method for p-value adjustment. 
+#'                      Default is 'fdr'.
+#' @param matchcoexp_tol A numeric value specifying the tolerance for matched co-expression. 
+#'                       Lower value means better matching but will take much more iterations. Default is 0.05. 
+#' @param matchcoexp_max_iter An integer specifying the maximum number of iterations 
+#'                            for matched co-expression. Default is 1000000.
+#' @return A gseaResult object containing the enrichment results.
+#' @import DOSE
+
+#' @export
+brainenrich <- function(gene_data, 
                         brain_data,
                         annoData,
-                        cor_method=c('pearson', 'spearman', 'pls1c', 
-                                    'pls1w', 'custom'),
-                        aggre_method= c("mean", "median", "meanabs", "meansqr",
-                                        "maxmean","ks_orig", "ks_weighted", "ks_pos_neg_sum", 
-                                        "local_fdr", "sign_test","rank_sum", "custom"),
-                        null_model=c('spin_brain','resample_gene','coexp_matched'),
-                        n_perm=1000,
-                        perm_id=NULL,
-                        coord.l=NULL,
-                        coord.r=NULL,
-                        minGSSize=10,
-                        maxGSSize=200){
+                        cor_method = c('pearson', 'spearman', 'pls1c', 'pls1w', 'custom'),
+                        aggre_method = c("mean", "median", "meanabs", "meansqr",
+                                         "maxmean","ks_orig", "ks_weighted", "ks_pos_neg_sum", 
+                                         "local_fdr", "sign_test","rank_sum", "custom"),
+                        null_model = c('spin_brain','resample_gene','coexp_matched'),
+                        n_perm = 5000,
+                        perm_id = NULL,
+                        coord.l = NULL,
+                        coord.r = NULL,
+                        n_cores = 0,
+                        minGSSize = 10,
+                        maxGSSize = 200,
+                        thres_type = c('sd', 'percentile'),
+                        thres_val = 1,
+                        pvalueCutoff = 0.05,
+                        pAdjustMethod = 'fdr',
+                        matchcoexp_tol = 0.05,
+                        matchcoexp_max_iter = 1000000) {
+  
+  # Check inputs
+  stopifnot(is.environment(annoData))
+  
+  if (null_model == 'spin_brain' && is.null(perm_id) && is.null(coord.l) && is.null(coord.r)) {
+    stop("For null_model 'spin_brain', 'perm_id' or at least one of 'coord.l' or 'coord.r' must be provided.")
+  }
+  
+  if (!identical(rownames(gene_data), rownames(brain_data))) {
+    stop("Rownames of 'gene_data' and 'brain_data' must be identical.")
+  }
+  
+  if (ncol(brain_data) != 1) {
+    stop("This function is designed for group-level analysis and supports one column of brain data. 
+          Considering using sapply.")
+  }
 
-geneList.true=corr_brain_gene(gene_data, brain_data, method = cor_method)                      
-selected.gs=filter_geneSetList(rownames(geneList.true), geneSetList, minGSSize=minGSSize,maxGSSize=maxGSSize)
-gs_score.true=aggregate_geneSetList(selected.gs, geneList.true, method = 'mean')
-
-if (null_model == 'spin_brain'){
-perm_id=rotate_parcellation(coord.l = coord.l, coord.r = coord.r, nrot = n_perm)
-null_brain_data=generate_null_brain_data(brain_data, perm_id)
-geneList.null=corr_brain_gene(gene_data, null_brain_data, method = cor_method)
-
-} else if (null_model == 'resample_gene'){ 
-geneList.null=resample_gene(geneList.true, n_perm)
-
-} else if (null_model == 'coexp_matched'){ 
-geneList.null=resample_gene_coexp_matched(gene_data, selected.gs, tol = 0.01, max_iter = 1000000, n_perm = n_perm)
+  cor_method <- match.arg(cor_method)
+  aggre_method <- match.arg(aggre_method)
+  null_model <- match.arg(null_model)
+  thres_type <- match.arg(thres_type)
+  
+  # Perform analysis
+  geneList.true <- corr_brain_gene(gene_data, brain_data, method = cor_method)  
+  geneSetList <- get_geneSetList(annoData)
+  selected.gs <- filter_geneSetList(rownames(geneList.true), geneSetList, minGSSize = minGSSize, maxGSSize = maxGSSize)
+  gs_score.true <- aggregate_geneSetList(geneList.true, selected.gs, method = aggre_method, n_cores = n_cores, prefix = NULL)
+  
+  if (null_model == 'spin_brain') {
+    if (is.null(perm_id)) {
+      perm_id <- rotate_parcellation(coord.l = coord.l, coord.r = coord.r, nrot = n_perm)
+    }
+    null_brain_data <- generate_null_brain_data(brain_data, perm_id)
+    geneList.null <- corr_brain_gene(gene_data, null_brain_data, method = cor_method)
+    gs_score.null <- aggregate_geneSetList(geneList.null, selected.gs, method = aggre_method, n_cores = n_cores, prefix = NULL)
+  } else if (null_model == 'resample_gene') { 
+    geneList.null <- resample_gene(geneList.true, n_perm = n_perm)
+    gs_score.null <- aggregate_geneSetList(geneList.null, selected.gs, method = aggre_method, n_cores = n_cores, prefix = NULL)
+  } else if (null_model == 'coexp_matched') { 
+    geneList.null <- resample_gene_coexp_matched(gene_data, geneSetList, tol = matchcoexp_tol, max_iter = matchcoexp_max_iter, n_perm = n_perm, n_cores = n_cores)
+    gs_score.null <- aggregate_geneSetList_matching_coexp(geneList.true, selected.gs, sampled_gs, method = aggre_method, n_cores = n_cores)
+  }
+  
+  if (aggre_method %in% c('ks_orig', 'ks_weighted')) {
+    pvals <- caculate_pvals(gs_score.true, gs_score.null, method = c('split_pos_neg'))
+  } else {
+    pvals <- calculate_pvals(gs_score.true, gs_score.null, method = c('standard'))
+  }
+  
+  TERM2NAME <- getFromNamespace("TERM2NAME", "DOSE")
+  calculate_qvalue <- getFromNamespace("calculate_qvalue", "DOSE")
+  
+  gs.name <- names(selected.gs)
+  Description <- TERM2NAME(gs.name, annoData)
+  
+  params <- list(pvalueCutoff = pvalueCutoff,
+                 nPerm = n_perm,
+                 pAdjustMethod = pAdjustMethod,
+                 minGSSize = minGSSize,
+                 maxGSSize = maxGSSize,
+                 corMethod = cor_method,
+                 aggreMethod = aggre_method,
+                 nullType = null_model,
+                 thresType = thres_type,
+                 thresVal = thres_val)
+  
+  res <- data.frame(
+    ID = as.character(gs.name),
+    Description = as.character(Description),
+    setSize = sapply(selected.gs, length),
+    gsScore = unlist(gs_score.true),
+    pvalue = unlist(pvals),
+    p.adjust = p.adjust(pvals, method = pAdjustMethod),
+    qvalue = calculate_qvalue(pvals),
+    stringsAsFactors = FALSE
+  )
+  
+  res <- res[!is.na(res$pvalue), ]
+  res <- res[res$pvalue <= pvalueCutoff, ]
+  res <- res[res$p.adjust <= pvalueCutoff, ]
+  res <- res[order(res$pvalue), ]
+  
+  if (nrow(res) == 0) {
+    message("No term enriched under specific pvalueCutoff...")
+    return(new("gseaResult",
+               result = res,
+               geneSets = selected.gs,
+               geneList = geneList.true[, 1],
+               permScores = as.matrix(do.call(rbind, gs_score.null)),
+               params = params,
+               readable = FALSE))
+  } else {
+    servived.gs <- selected.gs[res$ID]
+    core_genes <- find_core_genes(geneList.true, servived.gs, method = aggre_method, n_cores = n_cores, threshold_type = thres_type, threshold = thres_val)
+    res$core_enrichment <- sapply(core_genes, paste0, collapse = '/')
+    
+    return(new("gseaResult",
+               result = res,
+               geneSets = selected.gs,
+               geneList = geneList.true[, 1],
+               permScores = as.matrix(do.call(rbind, gs_score.null)),
+               params = params,
+               readable = TRUE))
+  }
 }
-
-gs_score.null=aggregate_geneSetList(selected.gs, geneList.null, method = aggre_method)
-
-pvals=caculate_pvals(gs_score.true, gs_score.null, method=c('standard'))
-
-}
-
-
-
-                                  
