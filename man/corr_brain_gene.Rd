@@ -28,10 +28,3 @@ A matrix with correlation or association coefficients between gene data and brai
 \description{
 Calculate correlations or associations between gene and brain data
 }
-\examples{
-# Custom correlation function example
-custom_cor <- function(gene_data, brain_data) {
-  apply(gene_data, 2, function(g) apply(brain_data, 2, function(b) cor(g, b, method = "pearson")))
-}
-result <- corr_brain_gene(gene_data, brain_data, method = custom_cor)
-}

@@ -36,13 +36,6 @@ It is important to note that restricting null models to a subset of genes can be
 the full gene pool differ from those derived from a restricted pool. Therefore, usage of this approach should be
 with caution.
 }
-\examples{
-# Assuming gene_data and geneSetList are predefined:
-resampled_sets_coexp <- resample_geneSetList_matching_coexp(gene_data,
-                                     geneSetList = geneSetList, tol = 0.01,
-                                     max_iter = 1000000, n_perm = 5000, n_cores = 2)
-
-}
 \references{
 Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
 Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.

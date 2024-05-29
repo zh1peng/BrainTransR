@@ -14,8 +14,7 @@
 #' @importFrom dplyr filter
 #' @importFrom tibble column_to_rownames
 #'
-#' @examples
-#' gene_exp_matrix <- get_geneExp(atlas = 'desikan', rdonor = 'r0.4', hem = 'L')
+
 get_geneExp <- function(atlas = c('desikan', 'schaefer100', 'schaefer200', 'schaefer300'),
                         rdonor = c('r0.2', 'r0.4', 'r0.6'),
                         hem = c('L','R','B')) {

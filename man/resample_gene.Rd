@@ -18,7 +18,3 @@ A matrix of permuted gene lists.
 Generates a set of permuted gene lists from the original gene list,
 ensuring uniqueness in the permuted sets.
 }
-\examples{
-gene_data <- matrix(rnorm(100), nrow=10)
-resampled_gene <- resampling_geneList(gene_data, n_perm=100)
-}

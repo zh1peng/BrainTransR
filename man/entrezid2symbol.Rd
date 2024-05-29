@@ -15,11 +15,3 @@ A vector of gene symbols corresponding to the input Entrez IDs.
 \description{
 This function converts a vector of Entrez IDs to gene symbols using the org.Hs.eg.db annotation package.
 }
-\examples{
-\dontrun{
-entrez_ids <- c("2451", "3142", "66666")
-gene_symbols <- entrezid2symbol(entrez_ids)
-print(gene_symbols)
-}
-
-}

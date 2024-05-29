@@ -34,7 +34,4 @@ The methodology implemented is informed by Wei et al. (2022) on statistical test
 Wei, Y., de Lange, S. C., Pijnenburg, R., Scholtens, L. H., Ardesch, D. J., Watanabe, K., Posthuma, D., & van den Heuvel, M. P. (2022).
 Statistical testing in transcriptomic-neuroimaging studies: A how-to and evaluation of methods assessing spatial and gene specificity.
 Human Brain Mapping, 43(3), 885–901. \url{https://doi.org/10.1002/hbm.25711}
-Assuming 'coexp_matrix' is predefined:
-target_gene_set <- c("Gene1", "Gene2", "Gene3")
-similar_gene_sets <- sample_gs_matching_coexp(target_gene_set, coexp_matrix)
 }

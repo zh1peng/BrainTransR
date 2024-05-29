@@ -8,11 +8,7 @@
 #' 
 #' @return A matrix of null brain data with the same dimensions as `brain_data` but with permuted rows according to `perm_id`.
 #' @export
-#'
-#' @examples
-#' brain_data <- matrix(rnorm(100), nrow=10)
-#' perm_id <- matrix(sample(1:10), nrow=10, ncol=5)
-#' null_data <- generate_null_brain_data(brain_data, perm_id)
+
 generate_null_brain_data <- function(brain_data, perm_id) {
   # Check for duplicates in perm_id
   if (any(duplicated(perm_id))) {

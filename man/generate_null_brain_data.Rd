@@ -18,8 +18,3 @@ A matrix of null brain data with the same dimensions as \code{brain_data} but wi
 This function generates null brain datasets based on permutations provided in perm_id.
 It rearranges the brain data according to the permutations and outputs the shuffled datasets.
 }
-\examples{
-brain_data <- matrix(rnorm(100), nrow=10)
-perm_id <- matrix(sample(1:10), nrow=10, ncol=5)
-null_data <- generate_null_brain_data(brain_data, perm_id)
-}

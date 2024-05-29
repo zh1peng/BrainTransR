@@ -29,11 +29,3 @@ The function performs the following steps:
 \item Cleans up by removing the temporary zip file and extracted Excel file.
 }
 }
-\examples{
-\dontrun{
-# Example usage of get_SynGO_data function
-data <- get_SynGO_data()
-print(head(data))  # Prints the first few rows of the processed data
-}
-
-}

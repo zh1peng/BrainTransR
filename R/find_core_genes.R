@@ -12,10 +12,6 @@
 #' @param threshold_type The method to determine significance ('sd' for standard deviation, 'percentile' for percentile threshold).
 #' @param threshold Numeric value specifying the threshold level; meaning depends on `threshold_type`.
 #' @return A list of core genes for each gene set.
-#' @examples
-#' geneList <- matrix(rnorm(100), ncol = 10, dimnames = list(gene = paste("Gene", 1:10), model = 1:10))
-#' geneSetList <- list(gene_set1 = paste("Gene", sample(1:10, 5), sep = ""))
-#' core_genes <- find_core_genes(geneList, geneSetList, method = 'mean', n_cores = 2, threshold_type = 'sd', threshold = 1)
 #' @export
 find_core_genes <- function(geneList, geneSetList, method, n_cores = 1, threshold_type = c('sd', 'percentile'), threshold = 1) {
   require(pbapply)

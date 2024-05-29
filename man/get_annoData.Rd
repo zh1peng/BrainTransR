@@ -25,10 +25,3 @@ The function supports various types of gene sets, including 'GO', 'KEGG', 'WikiP
 For 'GO', the additional parameter can be 'BP', 'MF', or 'CC'.
 For 'CellType', the additional parameter can be 'Seidlitz2020', 'Lake2018', or 'Martins2021'.
 }
-\examples{
-\dontrun{
-# Example usage of get_annoData function
-geneSetList <- get_annoData('GO', 'BP')
-print(geneSetList)
-}
-}

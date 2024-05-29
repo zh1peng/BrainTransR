@@ -28,8 +28,3 @@ Returns a numeric score based on the specified aggregation method.
 Function to aggregate geneList based on geneSet, evaluating one geneSet at a time.
 The function supports multiple aggregation methods as specified by the user.
 }
-\examples{
-geneList <- matrix(rnorm(100), ncol=10, dimnames=list(gene=paste("Gene", 1:10), model=1:10))
-gene_set <- paste("Gene", sample(1:10, 5), sep="")
-aggregate_geneSet(gene_data, gene_set, method = 'mean')
-}

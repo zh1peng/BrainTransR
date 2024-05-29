@@ -26,6 +26,3 @@ The data is obtained from the ENIGMA-TOOLBOX. Please cite the ENIGMA-TOOLBOX:
 Larivière, S., Paquola, C., Park, B. Y., Royer, J., Wang, Y., Benkarim, O., ... & Bernhardt, B. C. (2021).
 The ENIGMA Toolbox: multiscale neural contextualization of multisite neuroimaging datasets. Nature Methods, 18(7), 698-700.
 }
-\examples{
-gene_exp_matrix <- get_geneExp(atlas = 'desikan', rdonor = 'r0.4', hem = 'L')
-}

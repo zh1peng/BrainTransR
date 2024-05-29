@@ -11,12 +11,7 @@
 #' @return A matrix with correlation or association coefficients between gene data and brain data.
 #' @import pls
 #' @export
-#' @examples
-#' # Custom correlation function example
-#' custom_cor <- function(gene_data, brain_data) {
-#'   apply(gene_data, 2, function(g) apply(brain_data, 2, function(b) cor(g, b, method = "pearson")))
-#' }
-#' result <- corr_brain_gene(gene_data, brain_data, method = custom_cor)
+
 corr_brain_gene <- function(gene_data, 
                             brain_data, 
                             method = c('pearson', 

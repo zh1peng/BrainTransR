@@ -13,12 +13,7 @@
 #' @import DOSE
 #' @import clusterProfiler
 #' @import ReactomePA
-#' @examples
-#' \dontrun{
-#' # Example usage of get_annoData function
-#' geneSetList <- get_annoData('GO', 'BP')
-#' print(geneSetList)
-#' }
+
 #' @export
 get_annoData <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'),
                          parameter = NULL) {
@@ -133,13 +128,6 @@ get_geneSetDescription <- function(annoData) {
 #' @importFrom tidyr unnest
 #' @importFrom utils download.file unzip
 #'
-#' @examples
-#' \dontrun{
-#' # Example usage of get_SynGO_data function
-#' data <- get_SynGO_data()
-#' print(head(data))  # Prints the first few rows of the processed data
-#' }
-#'
 #' @export
 get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_download_release_20231201.zip") {
   # Define local file paths
@@ -236,12 +224,6 @@ get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_do
 #' @importFrom dplyr filter rename select %>%
 #' @importFrom utils download.file
 #' @importFrom clusterProfiler read.gmt
-#' @examples
-#' \dontrun{
-#' # Example usage of get_celltype_data function
-#' geneSetList <- get_celltype_data('Seidlitz2020')
-#' print(geneSetList)
-#' }
 #'
 #' @export
 get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021')) {
@@ -347,13 +329,6 @@ filter_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
 #' @param entrezid A vector of Entrez IDs to be converted to gene symbols.
 #' @return A vector of gene symbols corresponding to the input Entrez IDs.
 #' @importFrom AnnotationDbi mapIds
-#' @examples
-#' \dontrun{
-#' entrez_ids <- c("2451", "3142", "66666")
-#' gene_symbols <- entrezid2symbol(entrez_ids)
-#' print(gene_symbols)
-#' }
-#'
 #' @export
 entrezid2symbol <- function(entrezid) {
   # Ensure input is character vector
@@ -374,20 +349,6 @@ entrezid2symbol <- function(entrezid) {
   attributes(mappedSymbol) <- NULL
   return(unname(mappedSymbol))
 }
-
-
-
-
-
-# library(AnnotationHub)
-# library(MeSHDbi)
-# ah <- AnnotationHub(localHub=TRUE)
-# hsa <- query(ah, c("MeSHDb", "Homo sapiens"))
-# file_hsa <- hsa[[1]]
-# db <- MeSHDbi::MeSHDb(file_hsa)
-
-
-# install.packages('dbplyr')
 
 
 

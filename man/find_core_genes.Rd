@@ -35,8 +35,3 @@ This function performs a Leave-One-Out (LOO) analysis on gene sets to determine 
 that significantly influence the aggregated score. It utilizes parallel processing
 to enhance computation efficiency.
 }
-\examples{
-geneList <- matrix(rnorm(100), ncol = 10, dimnames = list(gene = paste("Gene", 1:10), model = 1:10))
-geneSetList <- list(gene_set1 = paste("Gene", sample(1:10, 5), sep = ""))
-core_genes <- find_core_genes(geneList, geneSetList, method = 'mean', n_cores = 2, threshold_type = 'sd', threshold = 1)
-}

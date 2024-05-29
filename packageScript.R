@@ -49,6 +49,6 @@ usethis::edit_r_environ()
 usethis::browse_github_pat()
 
 usethis::use_pkgdown_github_pages()
-
+pkgdown::build_site()
 # prepare example data
 

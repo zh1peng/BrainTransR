@@ -38,11 +38,3 @@ The function performs the following steps based on the specified type:
 }
 }
 }
-\examples{
-\dontrun{
-# Example usage of get_celltype_data function
-geneSetList <- get_celltype_data('Seidlitz2020')
-print(geneSetList)
-}
-
-}

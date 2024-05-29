@@ -7,12 +7,6 @@
 #' @param statList.null A named list of null statistics corresponding to the true statistics.
 #' @param method The method to be used for p-value calculation. Either 'standard' or 'split_pos_neg'. Default is 'standard'.
 #' @return A list of calculated p-values.
-#' @examples
-#' # Example usage of calculate_pvals function
-#' true_stats <- list(A = 2.5, B = -1.8, C = 0.5)
-#' null_stats <- list(A = rnorm(1000), B = rnorm(1000), C = rnorm(1000))
-#' pvals <- calculate_pvals(true_stats, null_stats, method = 'standard')
-#' print(pvals)
 #' @importFrom purrr map2
 #' @export
 calculate_pvals <- function(statList.true, statList.null, method = c('standard', 'split_pos_neg')) {
