@@ -1,0 +1,11 @@
+pandoc: '1.18'
+pkgdown: 2.0.6
+pkgdown_sha: ~
+articles:
+  brainenrich: brainenrich.html
+  brainscore: brainscore.html
+last_built: 2024-05-29T01:00Z
+urls:
+  reference: https://zh1peng.github.io/BrainEnrich/reference
+  article: https://zh1peng.github.io/BrainEnrich/articles
+
