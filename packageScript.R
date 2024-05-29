@@ -20,6 +20,14 @@ devtools::has_devel()
 devtools::document()
 devtools::build()
 devtools::install()
+
+
+# action on github uses pak to install the package
+# install.packages("pak")
+# pak::pkg_install("BrainEnrich")
+
+
+
 usethis::use_mit_license()
 usethis::use_citation()
 usethis::use_agpl3_license()
@@ -50,7 +58,9 @@ usethis::browse_github_pat()
 
 usethis::use_pkgdown()
 pkgdown::build_site()
+pkgdown::deploy_to_branch()
 usethis::use_pkgdown_github_pages()
 
+usethis::use_github_action()
 # prepare example data
 
