@@ -22,6 +22,9 @@ devtools::build()
 devtools::install()
 usethis::use_mit_license()
 usethis::use_citation()
+usethis::use_agpl3_license()
+
+
 
 usethis::use_data()
 
@@ -37,8 +40,15 @@ usethis::use_test('get_geneSets.R')
 usethis::use_test('brainenrich.R')
 usethis::use_test('brainscore.R')
 
-usethis::use_vignette('Group_level_analysis.Rmd')
-usethis::use_vignette('Individual_analysis.Rmd')
+usethis::use_vignette('brainenrich')
+usethis::use_vignette('visualization')
+usethis::use_vignette('brainscore')
 
+usethis::use_pkgdown()
+usethis::edit_r_environ()
+usethis::browse_github_pat()
+
+usethis::use_pkgdown_github_pages()
 
 # prepare example data
+
