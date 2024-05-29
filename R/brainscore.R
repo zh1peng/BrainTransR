@@ -29,7 +29,7 @@ brainscore <- function(brain_data,
                        prefix = NULL,
                        minGSSize = 10,
                        maxGSSize = 200,
-                       n_cores=1) {
+                       n_cores=0) {
   # Match arguments to ensure valid inputs
   cor_method <- match.arg(cor_method)
   aggre_method <- match.arg(aggre_method)
