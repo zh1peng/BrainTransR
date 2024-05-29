@@ -51,6 +51,6 @@ usethis::browse_github_pat()
 usethis::use_pkgdown()
 pkgdown::build_site()
 usethis::use_pkgdown_github_pages()
-usethis::use_github_pages()
+
 # prepare example data
 
