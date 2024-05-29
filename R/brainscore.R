@@ -28,7 +28,8 @@ brainscore <- function(brain_data,
                                         "local_fdr", "sign_test", "rank_sum", "custom"),
                        prefix = NULL,
                        minGSSize = 10,
-                       maxGSSize = 200) {
+                       maxGSSize = 200,
+                       n_cores=1) {
   # Match arguments to ensure valid inputs
   cor_method <- match.arg(cor_method)
   aggre_method <- match.arg(aggre_method)
@@ -54,7 +55,7 @@ brainscore <- function(brain_data,
   
   # Aggregate gene set scores
   message("Aggregating gene set scores...")
-  gs.score <- aggregate_geneSetList(geneList, selected.gs, method = aggre_method)
+  gs.score <- aggregate_geneSetList(geneList, selected.gs, method = aggre_method, n_cores=n_cores)
   
   # Prepare result data frame
   res <- data.frame(gs.score)
