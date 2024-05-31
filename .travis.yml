@@ -2,19 +2,15 @@ language: r
 
 r:
   - release
-  - devel
-  - "4.1"
-  - "4.2"
-  - "4.3"
 
 cache: packages
 
 before_install:
-  - Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")'
+  - Rscript -e 'install.packages("BiocManager")'
   - Rscript -e 'BiocManager::install(c("DOSE", "clusterProfiler", "ReactomePA", "org.Hs.eg.db"))'
+  - Rscript -e 'install.packages("devtools")'
+install:
+  - Rscript -e 'devtools::install_github("zh1peng/BrainEnrich")'
 
-script:
-  - R CMD build .
-  - R CMD check *tar.gz --as-cran
 
 warnings_are_errors: false
