@@ -5,11 +5,11 @@ r:
 
 cache: packages
 
-before_install:
+
+install:
   - Rscript -e 'install.packages("BiocManager")'
   - Rscript -e 'BiocManager::install(c("DOSE", "clusterProfiler", "ReactomePA", "org.Hs.eg.db"))'
   - Rscript -e 'install.packages("devtools")'
-install:
   - Rscript -e 'devtools::install_github("zh1peng/BrainEnrich")'
 
 
