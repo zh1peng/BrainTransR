@@ -32,6 +32,3 @@ test_script:
   - cmd: >
       "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "devtools::check()"
 
-artifacts:
-  - path: *.Rcheck
-    name: R Check Results
