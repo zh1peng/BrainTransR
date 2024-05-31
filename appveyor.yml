@@ -1,0 +1,23 @@
+build: off
+
+environment:
+  R_VERSION: release
+
+install:
+  - ps: Install-Product node stable
+  - sh: |
+      curl -O https://raw.githubusercontent.com/r-windows/rtools-backports/master/pacman.ps1
+      powershell ./pacman.ps1 -d C:\Rtools
+      pacman -Syuu
+      curl -O https://raw.githubusercontent.com/rstudio/r-builds/master/scripts/install-r.sh
+      chmod +x install-r.sh
+      ./install-r.sh
+      curl -O https://raw.githubusercontent.com/rstudio/r-builds/master/scripts/install-r-deps.sh
+      chmod +x install-r-deps.sh
+      ./install-r-deps.sh
+  - ps: |
+      Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")'
+      Rscript -e 'BiocManager::install(c("DOSE", "clusterProfiler", "ReactomePA", "org.Hs.eg.db"))'
+
+test_script:
+  - Rscript -e 'devtools::check()'
