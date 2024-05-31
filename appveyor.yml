@@ -12,25 +12,25 @@ install:
 
   # Install BiocManager
   - cmd: >
-      "C:\Program Files\R\%R_VERSION%\bin\R.exe" -e "install.packages('BiocManager')"
+      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "install.packages('BiocManager', repos='https://cloud.r-project.org/')"
 
   # Install Bioconductor packages
   - cmd: >
-      "C:\Program Files\R\%R_VERSION%\bin\R.exe" -e "BiocManager::install(c('DOSE', 'clusterProfiler', 'ReactomePA', 'org.Hs.eg.db'))"
+      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "BiocManager::install(c('DOSE', 'clusterProfiler', 'ReactomePA', 'org.Hs.eg.db'))"
 
   # Install devtools
   - cmd: >
-      "C:\Program Files\R\%R_VERSION%\bin\R.exe" -e "install.packages('devtools')"
+      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "install.packages('devtools', repos='https://cloud.r-project.org/')"
 
   # Install the BrainEnrich package from GitHub
   - cmd: >
-      "C:\Program Files\R\%R_VERSION%\bin\R.exe" -e "devtools::install_github('zh1peng/BrainEnrich')"
+      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "devtools::install_github('zh1peng/BrainEnrich')"
 
 build: off
 
 test_script:
   - cmd: >
-      "C:\Program Files\R\%R_VERSION%\bin\R.exe" -e "devtools::check()"
+      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "devtools::check()"
 
 artifacts:
   - path: *.Rcheck
