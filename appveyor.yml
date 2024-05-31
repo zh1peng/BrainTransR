@@ -1,7 +1,11 @@
 build: off
 
 environment:
-  R_VERSION: release
+  matrix:
+    - R_VERSION: "4.1"
+    - R_VERSION: "4.2"
+    - R_VERSION: "4.3"
+    - R_VERSION: release
 
 install:
   - ps: Install-Product node stable
