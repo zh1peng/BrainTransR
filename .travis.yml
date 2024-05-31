@@ -3,8 +3,6 @@ language: r
 r:
   - release
 
-cache: packages
-
 
 install:
   - Rscript -e 'install.packages("BiocManager")'

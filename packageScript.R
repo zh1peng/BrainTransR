@@ -77,3 +77,6 @@ styler::style_pkg()
 
 
 usethis::use_github_action("lint")
+
+
+devtools::install_github("zh1peng/BrainEnrich")
