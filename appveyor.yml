@@ -4,11 +4,9 @@ environment:
   R_VERSION: release
 
 install:
-  # Install Node.js (needed for the AppVeyor environment)
-  - ps: Install-Product node stable
-
   # Install R
-  - ps: Install-Product r %R_VERSION%
+  - ps: choco install r.project -y
+
 
   # Install BiocManager
   - cmd: >
