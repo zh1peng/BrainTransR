@@ -9,7 +9,7 @@ Description: What the package does (one paragraph).
 License: AGPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.2
+RoxygenNote: 7.3.1
 Suggests: 
     knitr,
     rmarkdown,
@@ -17,11 +17,23 @@ Suggests:
 Config/testthat/edition: 3
 Imports:
     DOSE,
-    clusterProfiler,
     ReactomePA,
-    org.Hs.eg.db
+    AnnotationDbi,
+    BiocManager,
+    clue,
+    clusterProfiler,
+    dplyr,
+    matrixStats,
+    parallel,
+    pbapply,
+    purrr,
+    readxl,
+    stats,
+    tibble,
+    tidyr,
+    utils
 Depends: 
-    R (>= 2.10)
+    R (>= 4.0.0)
 LazyData: true
 VignetteBuilder: knitr
 URL: https://zh1peng.github.io/BrainEnrich/

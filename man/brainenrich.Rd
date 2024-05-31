@@ -12,14 +12,14 @@ brainenrich(
   aggre_method = c("mean", "median", "meanabs", "meansqr", "maxmean", "ks_orig",
     "ks_weighted", "ks_pos_neg_sum", "local_fdr", "sign_test", "rank_sum", "custom"),
   null_model = c("spin_brain", "resample_gene", "coexp_matched"),
+  minGSSize = 10,
+  maxGSSize = 200,
+  n_cores = 0,
   n_perm = 5000,
   perm_id = NULL,
   coord.l = NULL,
   coord.r = NULL,
   seed = NULL,
-  n_cores = 0,
-  minGSSize = 10,
-  maxGSSize = 200,
   thres_type = c("sd", "percentile"),
   thres_val = 1,
   pvalueCutoff = 0.05,
@@ -48,6 +48,12 @@ Default is 'mean'. Other options include 'median', 'meanabs',
 Default is 'spin_brain'. Other options include 'resample_gene',
 'coexp_matched'.}
 
+\item{minGSSize}{An integer specifying the minimum gene set size. Default is 10.}
+
+\item{maxGSSize}{An integer specifying the maximum gene set size. Default is 200.}
+
+\item{n_cores}{An integer specifying the number of cores to use. Default is 0.}
+
 \item{n_perm}{An integer specifying the number of permutations. Default is 5000.}
 
 \item{perm_id}{A matrix of permutation IDs. Default is NULL.}
@@ -57,12 +63,6 @@ Default is 'spin_brain'. Other options include 'resample_gene',
 \item{coord.r}{A matrix of right hemisphere coordinates. Default is NULL.}
 
 \item{seed}{An integer specifying the seed for reproducibility of spinning brain. Default is NULL.}
-
-\item{n_cores}{An integer specifying the number of cores to use. Default is 0.}
-
-\item{minGSSize}{An integer specifying the minimum gene set size. Default is 10.}
-
-\item{maxGSSize}{An integer specifying the maximum gene set size. Default is 200.}
 
 \item{thres_type}{A character string specifying the threshold type for core genes.
 Default is 'sd'. Other option is 'percentile'.}

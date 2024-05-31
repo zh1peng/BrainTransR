@@ -21,6 +21,11 @@ devtools::document()
 devtools::build()
 devtools::install()
 
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install(c("DOSE", "clusterProfiler", "ReactomePA", "org.Hs.eg.db"))
+
 
 # action on github uses pak to install the package
 # install.packages("pak")
@@ -32,7 +37,7 @@ usethis::use_mit_license()
 usethis::use_citation()
 usethis::use_agpl3_license()
 
-
+uesthis::check_travis() # Check travis
 
 usethis::use_data()
 
@@ -63,4 +68,3 @@ usethis::use_pkgdown_github_pages()
 
 usethis::use_github_action()
 # prepare example data
-

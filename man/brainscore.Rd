@@ -13,7 +13,8 @@ brainscore(
     "ks_weighted", "ks_pos_neg_sum", "local_fdr", "sign_test", "rank_sum", "custom"),
   prefix = NULL,
   minGSSize = 10,
-  maxGSSize = 200
+  maxGSSize = 200,
+  n_cores = 0
 )
 }
 \arguments{
