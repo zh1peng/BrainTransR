@@ -13,19 +13,19 @@
 #' @param threshold Numeric value specifying the threshold level; meaning depends on `threshold_type`.
 #' @return A list of core genes for each gene set.
 #' @export
-find_core_genes <- function(geneList, geneSetList, method, n_cores = 1, threshold_type = c('sd', 'percentile'), threshold = 1) {
+find_core_genes <- function(geneList, geneSetList, method, n_cores = 1, threshold_type = c("sd", "percentile"), threshold = 1) {
   require(pbapply)
   require(parallel)
-  
+
   # Validate the threshold_type argument
   threshold_type <- match.arg(threshold_type)
-  
 
-   if (threshold_type == 'sd') {
+
+  if (threshold_type == "sd") {
     if (threshold < 0 || threshold > 3) {
       stop("For 'sd', threshold should be between 0 and 3.")
     }
-  } else if (threshold_type == 'percentile') {
+  } else if (threshold_type == "percentile") {
     if (threshold < 1 || threshold > 99) {
       stop("For 'percentile', threshold should be a multiple of 10 and between 1 and 99.")
     }
@@ -35,13 +35,13 @@ find_core_genes <- function(geneList, geneSetList, method, n_cores = 1, threshol
   if (n_cores == 0 | n_cores > detectCores() - 1) {
     n_cores <- detectCores() - 1
   }
-  
+
   # Initialize a cluster of workers
   cl <- makeCluster(n_cores)
-  
+
   # Export necessary variables to the cluster
   clusterExport(cl, varlist = c("geneList", "aggregate_geneSet", "method"), envir = environment())
-  
+
   # Parallelize the processing using pblapply for progress bar
   loo_changes <- pblapply(seq_along(geneSetList), function(i) {
     gs <- geneSetList[[i]]
@@ -57,14 +57,14 @@ find_core_genes <- function(geneList, geneSetList, method, n_cores = 1, threshol
     names(loo_results) <- gs
     loo_results
   }, cl = cl)
-  
+
   # Stop the cluster after processing
   stopCluster(cl)
-  
+
   # Apply threshold to identify core genes
-  if (threshold_type == 'sd') {
+  if (threshold_type == "sd") {
     core_genes <- lapply(loo_changes, identify_core_genes_sd, k = threshold)
-  } else if (threshold_type == 'percentile') {
+  } else if (threshold_type == "percentile") {
     core_genes <- lapply(loo_changes, identify_core_genes_percentile, percentile = threshold)
   }
   names(core_genes) <- names(geneSetList)
@@ -77,7 +77,7 @@ find_core_genes <- function(geneList, geneSetList, method, n_cores = 1, threshol
 #' @param percentile Numeric value indicating the percentile to use as the threshold.
 #' @return Vector of core genes.
 identify_core_genes_percentile <- function(changes, percentile = 90) {
-  threshold <- quantile(changes, probs = percentile/100)
+  threshold <- quantile(changes, probs = percentile / 100)
   core_genes <- names(changes[changes > threshold])
   return(core_genes)
 }
@@ -94,15 +94,3 @@ identify_core_genes_sd <- function(changes, k = 1) {
   core_genes <- names(changes[changes > threshold])
   return(core_genes)
 }
-
-
-
-
-
-
-
-
-
-
-
-

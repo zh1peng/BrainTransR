@@ -68,3 +68,9 @@ usethis::use_pkgdown_github_pages()
 
 usethis::use_github_action()
 # prepare example data
+
+
+
+install.packages("styler")
+
+styler::style_pkg()

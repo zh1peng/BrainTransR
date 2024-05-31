@@ -9,17 +9,17 @@
 #' @return A list of calculated p-values.
 #' @importFrom purrr map2
 #' @export
-calculate_pvals <- function(statList.true, statList.null, method = c('standard', 'split_pos_neg')) {
+calculate_pvals <- function(statList.true, statList.null, method = c("standard", "split_pos_neg")) {
   method <- match.arg(method)
-  
+
   if (!identical(names(statList.true), names(statList.null))) {
-    stop('statList.true and statList.null are not matched')
+    stop("statList.true and statList.null are not matched")
   }
-  
+
   pvals <- map2(statList.true, statList.null, function(true_stat, null_stat) {
-    if (method == 'standard') {
+    if (method == "standard") {
       sum(abs(null_stat) >= abs(true_stat)) / (length(null_stat) + 1)
-    } else if (method == 'split_pos_neg') {
+    } else if (method == "split_pos_neg") {
       if (true_stat >= 0) {
         (sum(null_stat >= true_stat) + 1) / (sum(null_stat >= 0) + 1)
       } else {
@@ -27,16 +27,16 @@ calculate_pvals <- function(statList.true, statList.null, method = c('standard',
       }
     }
   })
-  
+
   return(unlist(pvals))
 }
 
 
 
 
-cor2p <- function(r,n){
-  t <- (r*sqrt(n-2))/sqrt(1-r^2)
-  p <- 2*(1 - pt(abs(t),(n-2)))
+cor2p <- function(r, n) {
+  t <- (r * sqrt(n - 2)) / sqrt(1 - r^2)
+  p <- 2 * (1 - pt(abs(t), (n - 2)))
   return(p)
 }
 
@@ -45,7 +45,7 @@ cor2p <- function(r,n){
 ask_user_continue <- function(msg) {
   repeat {
     user_input <- readline(prompt = sprintf("%s. Do you want to continue? (Y/N): ", msg))
-    
+
     if (toupper(user_input) == "Y") {
       return(TRUE)
     } else if (toupper(user_input) == "N") {
@@ -55,12 +55,3 @@ ask_user_continue <- function(msg) {
     }
   }
 }
-
-
-
-
-
-
-
-
-

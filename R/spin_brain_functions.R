@@ -5,7 +5,7 @@
 #'
 #' @param brain_data A matrix representing brain data, where each row corresponds to a region.
 #' @param perm_id A matrix of permutations, where each column represents a permutation and each row corresponds to an index in `brain_data`.
-#' 
+#'
 #' @return A matrix of null brain data with the same dimensions as `brain_data` but with permuted rows according to `perm_id`.
 #' @export
 
@@ -15,7 +15,7 @@ generate_null_brain_data <- function(brain_data, perm_id) {
     stop("Duplicate entries found in perm_id.")
   }
 
-  if (is.data.frame(brain_data)){
+  if (is.data.frame(brain_data)) {
     brain_data <- as.matrix(brain_data)
   }
 
@@ -49,7 +49,7 @@ generate_null_brain_data <- function(brain_data, perm_id) {
 #' Generate a permutation map from a set of cortical regions of interest to itself,
 #' while (approximately) preserving contiguity and hemispheric symmetry.
 #' The function is based on a rotation of the FreeSurfer projection of coordinates
-#' of a set of regions of interest on the sphere. 
+#' of a set of regions of interest on the sphere.
 #' #' This function is modified from the original version available at:
 #' https://github.com/frantisekvasa/rotate_parcellation
 #'
@@ -80,11 +80,11 @@ generate_null_brain_data <- function(brain_data, perm_id) {
 #' # Example usage with one hemisphere (right)
 #' coord.r <- matrix(runif(30), nrow = 10, ncol = 3)
 #' permutations <- rotate_parcellation(NULL, coord.r)
-rotate_parcellation <- function(coord.l = NULL, 
-                                coord.r = NULL, nrot = 5000, 
-                                method = c('hungarian', 'vasa'),
+rotate_parcellation <- function(coord.l = NULL,
+                                coord.r = NULL, nrot = 5000,
+                                method = c("hungarian", "vasa"),
                                 seed = NULL) {
-  method=match.arg(method)
+  method <- match.arg(method)
 
   # Set seed for reproducibility
   if (!is.null(seed)) {
@@ -96,12 +96,12 @@ rotate_parcellation <- function(coord.l = NULL,
   if (is.null(coord.l) && is.null(coord.r)) {
     stop("At least one of coord.l or coord.r must be provided.")
   }
-  
-  if (!is.null(coord.l)& is.data.frame(coord.l)){
+
+  if (!is.null(coord.l) & is.data.frame(coord.l)) {
     coord.l <- as.matrix(coord.l)
   }
 
-  if(!is.null(coord.r)& is.data.frame(coord.r)){
+  if (!is.null(coord.r) & is.data.frame(coord.r)) {
     coord.r <- as.matrix(coord.r)
   }
 
@@ -122,20 +122,19 @@ rotate_parcellation <- function(coord.l = NULL,
       stop("Right hemisphere coordinates must have dimensions [n(RH regions) x 3].")
     }
   }
-  
+
   nroi.l <- if (!is.null(coord.l)) dim(coord.l)[1] else 0
   nroi.r <- if (!is.null(coord.r)) dim(coord.r)[1] else 0
   nroi <- nroi.l + nroi.r
-  
-  perm_id <- array(0, dim = c(nroi, round(nrot*1.2)))
+
+  perm_id <- array(0, dim = c(nroi, round(nrot * 1.2)))
   r <- 0
   c <- 0
-  
+
   I1 <- diag(3)
   I1[1, 1] <- -1
-  
-  while (r < round(nrot*1.2)) {
-    
+
+  while (r < round(nrot * 1.2)) {
     A <- matrix(rnorm(9, mean = 0, sd = 1), nrow = 3, ncol = 3)
     qrdec <- qr(A)
     TL <- qr.Q(qrdec)
@@ -145,35 +144,34 @@ rotate_parcellation <- function(coord.l = NULL,
       TL[, 1] <- -TL[, 1]
     }
     TR <- I1 %*% TL %*% I1
-    
+
     coord.l.rot <- if (!is.null(coord.l)) coord.l %*% TL else NULL
     coord.r.rot <- if (!is.null(coord.r)) coord.r %*% TR else NULL
-    
-    
-    if (!is.null(coord.l)){
-    dist.l = array(0,dim=c(nroi.l,nroi.l));
-    for (i in 1:nroi.l) { # left
-      for (j in 1:nroi.l) {
-        dist.l[i,j] = sqrt(sum((coord.l[i,]-coord.l.rot[j,])^2))
+
+
+    if (!is.null(coord.l)) {
+      dist.l <- array(0, dim = c(nroi.l, nroi.l))
+      for (i in 1:nroi.l) { # left
+        for (j in 1:nroi.l) {
+          dist.l[i, j] <- sqrt(sum((coord.l[i, ] - coord.l.rot[j, ])^2))
+        }
       }
-    }
     } else {
-      dist.l = NULL
+      dist.l <- NULL
     }
 
-    if (!is.null(coord.r)){
-    dist.r = array(0,dim=c(nroi.r,nroi.r));
-    for (i in 1:nroi.r) { # right
-      for (j in 1:nroi.r) {
-        dist.r[i,j] = sqrt(sum((coord.r[i,]-coord.r.rot[j,])^2))
+    if (!is.null(coord.r)) {
+      dist.r <- array(0, dim = c(nroi.r, nroi.r))
+      for (i in 1:nroi.r) { # right
+        for (j in 1:nroi.r) {
+          dist.r[i, j] <- sqrt(sum((coord.r[i, ] - coord.r.rot[j, ])^2))
+        }
       }
-    }
     } else {
-      dist.r = NULL
+      dist.r <- NULL
     }
 
-    if (method == 'vasa') {
-      
+    if (method == "vasa") {
       if (!is.null(coord.l)) {
         temp.dist.l <- dist.l
         rot.l <- ref.l <- numeric(nroi.l)
@@ -186,7 +184,7 @@ rotate_parcellation <- function(coord.l = NULL,
           temp.dist.l[ref.ix, ] <- 0
         }
       }
-      
+
       if (!is.null(coord.r)) {
         temp.dist.r <- dist.r
         rot.r <- ref.r <- numeric(nroi.r)
@@ -199,20 +197,17 @@ rotate_parcellation <- function(coord.l = NULL,
           temp.dist.r[ref.ix, ] <- 0
         }
       }
-      
-    } else if (method == 'hungarian') {
-      
+    } else if (method == "hungarian") {
       if (!is.null(coord.l)) {
         rot.l <- as.vector(solve_LSAP(dist.l, maximum = FALSE))
         ref.l <- seq_len(nroi.l)
       }
-      
+
       if (!is.null(coord.r)) {
         rot.r <- as.vector(solve_LSAP(dist.r, maximum = FALSE))
         ref.r <- seq_len(nroi.r)
       }
-      
-    } 
+    }
 
     # Correctly concatenate vectors without including NULL values
     ref.lr <- c()
@@ -225,15 +220,15 @@ rotate_parcellation <- function(coord.l = NULL,
       ref.lr <- c(ref.lr, nroi.l + ref.r)
       rot.lr <- c(rot.lr, nroi.l + rot.r)
     }
-    
+
     b <- sort(ref.lr, index.return = TRUE)
     ref.lr.sort <- ref.lr[b$ix]
     rot.lr.sort <- rot.lr[b$ix]
-    
+
     if (!all(sort(rot.lr.sort, decreasing = FALSE) == seq_len(nroi))) {
       browser("permutation error")
     }
-    
+
     if (!all(rot.lr.sort == seq_len(nroi))) {
       r <- r + 1
       perm_id[, r] <- rot.lr.sort
@@ -241,16 +236,13 @@ rotate_parcellation <- function(coord.l = NULL,
       c <- c + 1
       message(sprintf("map to itself n. %d", c))
     }
-    
-    if (r %% 500 == 0) message(sprintf("permutation %d of %d", r, nrot*1.2))
+
+    if (r %% 500 == 0) message(sprintf("permutation %d of %d", r, nrot * 1.2))
   }
-    # Remove duplicate columns and ensure only nrot unique permutations are returned
-    perm_id <- perm_id[, !duplicated(t(perm_id))]
-    if (ncol(perm_id) > nrot) {
-      perm_id <- perm_id[, 1:nrot]
-    }
+  # Remove duplicate columns and ensure only nrot unique permutations are returned
+  perm_id <- perm_id[, !duplicated(t(perm_id))]
+  if (ncol(perm_id) > nrot) {
+    perm_id <- perm_id[, 1:nrot]
+  }
   return(perm_id)
 }
-
-
-

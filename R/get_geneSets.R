@@ -15,46 +15,41 @@
 #' @import ReactomePA
 
 #' @export
-get_annoData <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', 'SynGO', 'CellType'),
+get_annoData <- function(type = c("GO", "KEGG", "WikiPathways", "Reactome", "SynGO", "CellType"),
                          parameter = NULL) {
   type <- match.arg(type)
-  
+
   # Main processing based on type
   annoData <- NULL
-  
-  if (type == 'GO') {
-    if (is.null(parameter) || !parameter %in% c('BP', 'MF', 'CC')) {
+
+  if (type == "GO") {
+    if (is.null(parameter) || !parameter %in% c("BP", "MF", "CC")) {
       stop("For type 'GO', parameter must be one of 'BP', 'MF', or 'CC'.")
     }
-    get_GO_data <- getFromNamespace('get_GO_data', 'clusterProfiler')
-    annoData <- get_GO_data('org.Hs.eg.db', ont = parameter, keytype = 'SYMBOL')
-    
-  } else if (type == 'DisGeNet') {
-    get_DGN_data <- getFromNamespace('get_DGN_data', 'DOSE')
+    get_GO_data <- getFromNamespace("get_GO_data", "clusterProfiler")
+    annoData <- get_GO_data("org.Hs.eg.db", ont = parameter, keytype = "SYMBOL")
+  } else if (type == "DisGeNet") {
+    get_DGN_data <- getFromNamespace("get_DGN_data", "DOSE")
     annoData <- get_DGN_data()
-    
-  } else if (type == 'KEGG') {
-    prepare_KEGG <- getFromNamespace('prepare_KEGG', 'clusterProfiler')
-    annoData <- prepare_KEGG('hsa', 'MKEGG', 'kegg')
-    
-  } else if (type == 'WikiPathways') {
-    prepare_WP_data <- getFromNamespace('prepare_WP_data', 'clusterProfiler')
-    wpdata <- prepare_WP_data('Homo sapiens')
+  } else if (type == "KEGG") {
+    prepare_KEGG <- getFromNamespace("prepare_KEGG", "clusterProfiler")
+    annoData <- prepare_KEGG("hsa", "MKEGG", "kegg")
+  } else if (type == "WikiPathways") {
+    prepare_WP_data <- getFromNamespace("prepare_WP_data", "clusterProfiler")
+    wpdata <- prepare_WP_data("Homo sapiens")
     TERM2GENE <- wpdata$WPID2GENE
     TERM2NAME <- wpdata$WPID2NAME
     build_Anno <- getFromNamespace("build_Anno", "DOSE")
     annoData <- build_Anno(TERM2GENE, TERM2NAME)
-    
-  } else if (type == 'Reactome') {
-    get_Reactome_DATA <- getFromNamespace('get_Reactome_DATA', 'ReactomePA')
-    annoData <- get_Reactome_DATA('human')
-    
-  } else if (type == 'CellType') {
-    if (is.null(parameter) || !parameter %in% c('Seidlitz2020', 'Lake2018', 'Martins2021')) {
+  } else if (type == "Reactome") {
+    get_Reactome_DATA <- getFromNamespace("get_Reactome_DATA", "ReactomePA")
+    annoData <- get_Reactome_DATA("human")
+  } else if (type == "CellType") {
+    if (is.null(parameter) || !parameter %in% c("Seidlitz2020", "Lake2018", "Martins2021")) {
       stop("For type 'CellType', parameter must be one of 'Seidlitz2020', 'Lake2018', or 'Martins2021'.")
     }
     annoData <- get_celltype_data(parameter)
-  } else if (type == 'SynGO') {
+  } else if (type == "SynGO") {
     annoData <- get_SynGO_data()
   }
   return(annoData)
@@ -70,20 +65,20 @@ get_annoData <- function(type = c('GO', 'KEGG', 'WikiPathways', 'Reactome', 'Syn
 #' @param convert_to_symbol Logical; if TRUE, converts gene identifiers to gene symbols.
 #' @return A list of gene sets.
 #' @import DOSE
-#' @export 
+#' @export
 get_geneSetList <- function(annoData, convert_to_symbol = FALSE) {
-  getGeneSet <- getFromNamespace('getGeneSet', 'DOSE')
-  
+  getGeneSet <- getFromNamespace("getGeneSet", "DOSE")
+
   geneSetList <- getGeneSet(annoData)
-  
+
   if (length(geneSetList) > 10000) {
     warning("The geneSetList is quite large (>10k), this may take some time to process.")
   }
-  
+
   if (convert_to_symbol) {
     geneSetList <- lapply(geneSetList, entrezid2symbol)
   }
-  
+
   return(geneSetList)
 }
 
@@ -94,7 +89,7 @@ get_geneSetList <- function(annoData, convert_to_symbol = FALSE) {
 #' @param annoData An environment containing annotation data.
 #' @return A character vector of gene set descriptions.
 #' @import DOSE
-#' @export 
+#' @export
 get_geneSetDescription <- function(annoData) {
   TERM2NAME <- getFromNamespace("TERM2NAME", "DOSE")
   gs.name <- names(annoData)
@@ -144,29 +139,34 @@ get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_do
     zip_path <- tempfile(fileext = ".zip")
     temp_dir <- tempdir()
     extracted_file <- file.path(temp_dir, "syngo_ontologies.xlsx")
-  
+
     # Clean-up function to ensure temp files are removed
-    on.exit({
-      if (file.exists(zip_path)) unlink(zip_path)
-      if (file.exists(extracted_file)) unlink(extracted_file)
-    }, add = TRUE)
-  
-    tryCatch({
-      # Download the file
-      message("Downloading SynGO data...")
-      download.file(url, zip_path, mode = "wb")
-  
-      # Unzip the required file
-      message("Unzipping SynGO data...")
-      unzip(zip_path, files = "syngo_ontologies.xlsx", exdir = temp_dir)
-  
-      # Move the extracted file to the local directory for future use
-      file.copy(extracted_file, local_file)
-      extracted_file <- local_file
-  
-    }, error = function(e) {
-      stop("An error occurred while processing SynGO data: ", e$message)
-    })
+    on.exit(
+      {
+        if (file.exists(zip_path)) unlink(zip_path)
+        if (file.exists(extracted_file)) unlink(extracted_file)
+      },
+      add = TRUE
+    )
+
+    tryCatch(
+      {
+        # Download the file
+        message("Downloading SynGO data...")
+        download.file(url, zip_path, mode = "wb")
+
+        # Unzip the required file
+        message("Unzipping SynGO data...")
+        unzip(zip_path, files = "syngo_ontologies.xlsx", exdir = temp_dir)
+
+        # Move the extracted file to the local directory for future use
+        file.copy(extracted_file, local_file)
+        extracted_file <- local_file
+      },
+      error = function(e) {
+        stop("An error occurred while processing SynGO data: ", e$message)
+      }
+    )
   }
 
   # Read the data from the extracted file
@@ -226,9 +226,9 @@ get_SynGO_data <- function(url = "https://www.syngoportal.org/data/SynGO_bulk_do
 #' @importFrom clusterProfiler read.gmt
 #'
 #' @export
-get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021')) {
+get_celltype_data <- function(type = c("Seidlitz2020", "Lake2018", "Martins2021")) {
   type <- match.arg(type)
-  
+
   # Define URLs for each type
   urls <- list(
     Seidlitz2020 = "https://github.com/jms290/PolySyn_MSNs/blob/master/Data/AHBA/celltypes_PSP.csv?raw=true",
@@ -253,47 +253,53 @@ get_celltype_data <- function(type = c('Seidlitz2020', 'Lake2018', 'Martins2021'
     message("Downloading cell type data for ", type, "...")
     temp_file <- tempfile()
     download.file(urls[[type]], temp_file, mode = "wb")
-    
+
     # Save the downloaded file locally for future use
     file.copy(temp_file, local_files[[type]])
   }
 
-# Clean-up function to ensure temp files are removed
-    on.exit({
+  # Clean-up function to ensure temp files are removed
+  on.exit(
+    {
       if (file.exists(temp_file)) unlink(temp_file)
-    }, add = TRUE)
-    
-  tryCatch({
-    if (type == 'Seidlitz2020') {
-      # Read CSV file
-      TERM2GENE <- read.csv(temp_file) %>% 
-        mutate(term = class) %>% 
-        filter(gene != '') %>% 
-        select(term, gene)
-      TERM2NAME <- TERM2GENE %>% 
-        mutate(description = term) %>% 
-        select(term, description)
-    } else {
-      # Read GMT file
-      TERM2GENE <- suppressWarnings({
-        read.gmt(temp_file) %>% 
-          filter(gene != '') %>% 
+    },
+    add = TRUE
+  )
+
+  tryCatch(
+    {
+      if (type == "Seidlitz2020") {
+        # Read CSV file
+        TERM2GENE <- read.csv(temp_file) %>%
+          mutate(term = class) %>%
+          filter(gene != "") %>%
           select(term, gene)
-      })
-      TERM2NAME <- TERM2GENE %>% 
-        mutate(description = term) %>% 
-        select(term, description)
+        TERM2NAME <- TERM2GENE %>%
+          mutate(description = term) %>%
+          select(term, description)
+      } else {
+        # Read GMT file
+        TERM2GENE <- suppressWarnings({
+          read.gmt(temp_file) %>%
+            filter(gene != "") %>%
+            select(term, gene)
+        })
+        TERM2NAME <- TERM2GENE %>%
+          mutate(description = term) %>%
+          select(term, description)
+      }
+
+      build_Anno <- getFromNamespace("build_Anno", "DOSE")
+      # Create gene set list
+      USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
+
+      message("Cell type data has been processed.")
+      return(USER_DATA)
+    },
+    error = function(e) {
+      stop("An error occurred while processing cell type data: ", e$message)
     }
-
-    build_Anno <- getFromNamespace("build_Anno", "DOSE")
-    # Create gene set list
-    USER_DATA <- build_Anno(TERM2GENE, TERM2NAME)
-
-    message("Cell type data has been processed.")
-    return(USER_DATA)
-  }, error = function(e) {
-    stop("An error occurred while processing cell type data: ", e$message)
-  })
+  )
 }
 
 
@@ -314,7 +320,7 @@ filter_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
   tmp.val <- seq_along(bg_genes)
   names(tmp.val) <- bg_genes
   # Filter the gene set list
-  geneSet_filter=getFromNamespace('geneSet_filter','DOSE')
+  geneSet_filter <- getFromNamespace("geneSet_filter", "DOSE")
   geneSetList_filtered <- geneSet_filter(geneSetList, tmp.val, minGSSize, maxGSSize)
   return(geneSetList_filtered)
 }
@@ -333,7 +339,7 @@ filter_geneSetList <- function(bg_genes, geneSetList, minGSSize, maxGSSize) {
 entrezid2symbol <- function(entrezid) {
   # Ensure input is character vector
   entrezid <- as.character(entrezid)
-  
+
   # Map Entrez IDs to gene symbols
   mappedSymbol <- suppressMessages(
     mapIds(
@@ -349,28 +355,3 @@ entrezid2symbol <- function(entrezid) {
   attributes(mappedSymbol) <- NULL
   return(unname(mappedSymbol))
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
