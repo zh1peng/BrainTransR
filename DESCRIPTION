@@ -31,7 +31,8 @@ Imports:
     stats,
     tibble,
     tidyr,
-    utils
+    utils,
+    devtools
 Depends: 
     R (>= 4.0.0)
 LazyData: true
