@@ -66,6 +66,14 @@ brainenrich <- function(brain_data,
     stop("For null_model 'spin_brain', 'perm_id' or at least one of 'coord.l' or 'coord.r' must be provided.")
   }
   
+  if (null_model == 'spin_brain'){
+    if (n_perm > ncol(perm_id)){
+      stop("The number of permutations must be less than or equal to the number of columns in 'perm_id'.")
+    } else if (n_perm < ncol(perm_id)){ {
+       perm_id <- perm_id[, 1:n_perm]
+    }
+  }
+
   if (!identical(rownames(gene_data), rownames(brain_data))) {
     stop("Rownames of 'gene_data' and 'brain_data' must be identical.")
   }
