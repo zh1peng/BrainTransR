@@ -1,7 +1,7 @@
 version: 1.0.{build}
 
 environment:
-  R_VERSION: 4.4
+  R_VERSION: 4.4.0
 
 install:
   # Install R
