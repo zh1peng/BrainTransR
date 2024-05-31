@@ -74,3 +74,6 @@ usethis::use_github_action()
 install.packages("styler")
 
 styler::style_pkg()
+
+
+usethis::use_github_action("lint")

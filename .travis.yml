@@ -1,0 +1,16 @@
+language: r
+
+r:
+  - release
+
+cache: packages
+
+before_install:
+  - Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")'
+  - Rscript -e 'BiocManager::install(c("DOSE", "clusterProfiler", "ReactomePA", "org.Hs.eg.db"))'
+
+script:
+  - R CMD build .
+  - R CMD check *tar.gz --as-cran
+
+warnings_are_errors: false
