@@ -1,32 +1,36 @@
 version: 1.0.{build}
 
 environment:
-  R_VERSION: release
+  matrix:
+    - R_VERSION: release
 
 install:
-  # Install R
+  # Install R using Chocolatey
   - ps: choco install r.project -y
 
+  # Find the actual installed path of R
+  - ps: $env:R_HOME = (Get-ChildItem "C:\Program Files\R" | Sort-Object LastWriteTime | Select-Object -Last 1).FullName
+
+  # Verify R installation
+  - cmd: '"$env:R_HOME\bin\R.exe" --version'
 
   # Install BiocManager
-  - cmd: >
-      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "install.packages('BiocManager', repos='https://cloud.r-project.org/')"
+  - cmd: '"$env:R_HOME\bin\R.exe" -e "install.packages(\'BiocManager\', repos=\'https://cloud.r-project.org/\')"'
 
   # Install Bioconductor packages
-  - cmd: >
-      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "BiocManager::install(c('DOSE', 'clusterProfiler', 'ReactomePA', 'org.Hs.eg.db'))"
+  - cmd: '"$env:R_HOME\bin\R.exe" -e "BiocManager::install(c(\'DOSE\', \'clusterProfiler\', \'ReactomePA\', \'org.Hs.eg.db\'))"'
 
   # Install devtools
-  - cmd: >
-      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "install.packages('devtools', repos='https://cloud.r-project.org/')"
+  - cmd: '"$env:R_HOME\bin\R.exe" -e "install.packages(\'devtools\', repos=\'https://cloud.r-project.org/\')"'
 
   # Install the BrainEnrich package from GitHub
-  - cmd: >
-      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "devtools::install_github('zh1peng/BrainEnrich')"
+  - cmd: '"$env:R_HOME\bin\R.exe" -e "if (!requireNamespace(\'devtools\', quietly = TRUE)) install.packages(\'devtools\', repos=\'https://cloud.r-project.org/\'); devtools::install_github(\'zh1peng/BrainEnrich\')"'
 
 build: off
 
 test_script:
-  - cmd: >
-      "C:\Program Files\R\R-%R_VERSION%\bin\R.exe" -e "devtools::check()"
+  - cmd: '"$env:R_HOME\bin\R.exe" -e "devtools::check()"'
 
+artifacts:
+  - path: *.Rcheck
+    name: R Check Results
