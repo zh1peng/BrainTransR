@@ -73,6 +73,7 @@ brainenrich <- function(brain_data,
        perm_id <- perm_id[, 1:n_perm]
     }
   }
+  }
 
   if (!identical(rownames(gene_data), rownames(brain_data))) {
     stop("Rownames of 'gene_data' and 'brain_data' must be identical.")
