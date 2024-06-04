@@ -90,9 +90,8 @@ get_geneSetList <- function(annoData, convert_to_symbol = FALSE) {
 #' @return A character vector of gene set descriptions.
 #' @import DOSE
 #' @export
-get_geneSetDescription <- function(annoData) {
+get_geneSetDescription <- function(gs.name,annoData) {
   TERM2NAME <- getFromNamespace("TERM2NAME", "DOSE")
-  gs.name <- names(annoData)
   Description <- TERM2NAME(gs.name, annoData)
   return(Description)
 }

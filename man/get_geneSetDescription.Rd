@@ -4,7 +4,7 @@
 \alias{get_geneSetDescription}
 \title{Get Gene Set Descriptions}
 \usage{
-get_geneSetDescription(annoData)
+get_geneSetDescription(gs.name, annoData)
 }
 \arguments{
 \item{annoData}{An environment containing annotation data.}
